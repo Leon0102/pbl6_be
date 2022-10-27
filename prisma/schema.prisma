@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FacilityType {
+  PROPERTY
+  ROOM
+}
+
+model Facility {
+  id          Int          @id @default(autoincrement())
+  name        String
+  type        FacilityType
+  description String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  facilityDetails FacilityDetail[]
+}
+
+model FacilityDetail {
+  id          Int      @id @default(autoincrement())
+  name        String
+  facilityId  Int     @map("facility_id")
+  facility    Facility @relation(fields: [facilityId], references: [id])
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
