@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -17,7 +18,7 @@ enum RoleType {
 }
 
 model Role {
-  id        Int      @id @default(autoincrement())
+  id        String      @id
   name      RoleType @unique
   users     User[]
   @@map("roles")
@@ -34,27 +35,16 @@ model User {
   point    Int      @default(0)
   avatar   String?  
   role      Role     @relation(fields: [roleId], references: [id])
-  roleId    Int     @map("role_id")
+  roleId    String     @map("role_id") @default("guest")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   reservations Reservation[]
   properties Property[]
   @@map("users")
 }
-enum PropertyType {
-  APARTMENT
-  VILLA
-  HOTEL
-  RESORT
-  HOSTEL
-  BEDANDBREAKFAST
-  MOTEL
-  OTHER
-}
 model Category {
-  id        Int      @id @default(autoincrement())
+  id        String      @id
   name      String   @unique
-  type     PropertyType  @unique
   description String?
   properties Property[]
   createdAt DateTime @default(now()) @map("created_at")
@@ -74,11 +64,11 @@ model Property {
   roomCount Int @map("room_count")
   roomTypes RoomType[] 
   photos Images[]
-  isDeleted Boolean  @default(true) @map("is_deleted")
+  isDeleted Boolean  @default(false) @map("is_deleted")
   userId   Int      @map("user_id")
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category  Category @relation(fields: [categoryId], references: [id])
-  categoryId Int     @map("category_id")
+  categoryId String     @map("category_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("properties")
@@ -90,12 +80,15 @@ model RoomType {
   name      String   @unique
   price     Float
   propertyId Int     @map("property_id")
-  property Property @relation(fields: [propertyId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomCount Int @map("room_count")
   rooms     Room[]
   photos Images[]
-  specification Json?
+  description String
+  facilities Json?
+  maxGuests Int @map("max_guests")
   size Json?
-  isDeleted Boolean  @default(true) @map("is_deleted")
+  isDeleted Boolean  @default(false) @map("is_deleted")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("room_types")
@@ -111,8 +104,9 @@ enum RoomStatus {
 }
 model Room {
   id        Int      @id @default(autoincrement())
-  status      RoomStatus
-  roomType  RoomType @relation(fields: [roomTypeId], references: [id])
+  name      String?
+  status      RoomStatus @default(AVAILABLE)
+  roomType  RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   roomTypeId Int     @map("room_type_id")
   isActive Boolean  @default(true) @map("is_active")
   roomReserved RoomReserved[]
@@ -125,9 +119,9 @@ model Images {
   id        Int      @id @default(autoincrement())
   url       String
   propertyId Int    @map("property_id")
-  property Property @relation(fields: [propertyId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   roomTypeId    Int     @map("room_id")
-  RoomType      RoomType     @relation(fields: [roomTypeId], references: [id])
+  RoomType      RoomType     @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("images")
@@ -146,7 +140,7 @@ model Reservation {
   checkOut  DateTime @map("check_out")
   specialRequest String? @map("special_request")
   status   ReservationStatus
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int      @map("user_id")
   roomReserved RoomReserved[]
   createdAt DateTime @default(now()) @map("created_at")
@@ -157,9 +151,9 @@ model Reservation {
 model RoomReserved {
   id        Int      @id @default(autoincrement())
   roomId    Int      @map("room_id")
-  room Room @relation(fields: [roomId], references: [id])
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
   reservationId Int @map("reservation_id")
-  reservation Reservation @relation(fields: [reservationId], references: [id])
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("room_reserved")

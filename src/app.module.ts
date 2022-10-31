@@ -3,9 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { PropertiesModule } from './modules/properties/properties.module';
-import { FacilitiesModule } from './modules/facilities/facilities.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { RoomTypesModule } from './modules/room-types/room-types.module';
 @Module({
-  imports: [PropertiesModule, FacilitiesModule],
+  imports: [PropertiesModule, RoomsModule, CategoriesModule, RoomTypesModule],
   controllers: [AppController],
   providers: [AppService],
 })
