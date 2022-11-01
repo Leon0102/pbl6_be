@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = ["interactiveTransactions","filteredRelationCount"]
 }
 
 datasource db {
@@ -118,10 +118,10 @@ model Room {
 model Images {
   id        Int      @id @default(autoincrement())
   url       String
-  propertyId Int    @map("property_id")
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  roomTypeId    Int     @map("room_id")
-  RoomType      RoomType     @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  propertyId Int?    @map("property_id")
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomTypeId    Int?     @map("room_id")
+  RoomType      RoomType?     @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("images")
