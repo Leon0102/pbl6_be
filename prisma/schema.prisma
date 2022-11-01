@@ -63,7 +63,7 @@ model Property {
   facilities Json?
   roomCount Int @map("room_count")
   roomTypes RoomType[] 
-  photos Images[]
+  photos String[]
   isDeleted Boolean  @default(false) @map("is_deleted")
   userId   Int      @map("user_id")
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -83,7 +83,7 @@ model RoomType {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   roomCount Int @map("room_count")
   rooms     Room[]
-  photos Images[]
+  photos String[]
   description String
   facilities Json?
   maxGuests Int @map("max_guests")
@@ -115,17 +115,6 @@ model Room {
   @@map("rooms")
 }
 
-model Images {
-  id        Int      @id @default(autoincrement())
-  url       String
-  propertyId Int?    @map("property_id")
-  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  roomTypeId    Int?     @map("room_id")
-  RoomType      RoomType?     @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  @@map("images")
-}
 
 enum ReservationStatus {
   PENDING

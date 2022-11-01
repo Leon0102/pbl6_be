@@ -9,10 +9,12 @@ import {
   HttpStatus,
   Param,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { brotliDecompressSync } from 'zlib';
 import { CreatePropertyDto } from './dtos/create-property.dto';
+import { UpdatePropertyDto } from './dtos/update-property.dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
@@ -103,6 +105,29 @@ export class PropertiesController {
         success: true,
         statusCode: 200,
         message: 'Property deleted successfully',
+        data: {},
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+  @Patch(':id')
+  @HttpCode(200)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePropertyDto: UpdatePropertyDto,
+  ) {
+    try {
+      await this.propertiesService.update(id, updatePropertyDto);
+      return {
+        success: true,
+        statusCode: 200,
+        message: 'Property updated successfully',
         data: {},
       };
     } catch (error) {

@@ -5,6 +5,7 @@ import { CreatePropertyDto } from './dtos/create-property.dto';
 import { Categories } from '@common/constants';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { RoomTypeDto } from '@modules/room-types/dtos/room-type.dto';
+import { UpdatePropertyDto } from './dtos/update-property.dto';
 @Injectable()
 export class PropertiesService {
   private readonly properties = db.property;
@@ -18,12 +19,6 @@ export class PropertiesService {
         isDeleted: false,
       },
       include: {
-        photos: {
-          select: {
-            id: true,
-            url: true,
-          },
-        },
         roomTypes: {
           where: {
             isDeleted: false,
@@ -54,23 +49,11 @@ export class PropertiesService {
         isDeleted: false,
       },
       include: {
-        photos: {
-          select: {
-            id: true,
-            url: true,
-          },
-        },
         roomTypes: {
           where: {
             isDeleted: false,
           },
           include: {
-            photos: {
-              select: {
-                id: true,
-                url: true,
-              },
-            },
             _count: {
               select: {
                 rooms: {
@@ -109,11 +92,7 @@ export class PropertiesService {
               id: userId,
             },
           },
-          photos: {
-            createMany: {
-              data: property.images.map((image) => ({ url: image })),
-            },
-          },
+          photos: property.images,
           category: {
             connect: {
               id: Categories[property.categoryId],
@@ -135,8 +114,6 @@ export class PropertiesService {
     return true;
   }
 
-  async update(id: number, property: any) {}
-
   async remove(id: number) {
     await this.properties.update({
       where: {
@@ -144,6 +121,34 @@ export class PropertiesService {
       },
       data: {
         isDeleted: true,
+      },
+    });
+  }
+
+  async update(id: number, property: UpdatePropertyDto) {
+    await this.properties.update({
+      where: {
+        id,
+      },
+      data: {
+        name: property.name,
+        description: property.description,
+        latitude: property.latitude,
+        longitude: property.longitude,
+        streetAddress: property.streetAddress,
+        facilities: {
+          ...property.facilities,
+        },
+        roomCount: property.roomCount,
+        location: {
+          ...property.location,
+        },
+        photos: property.images,
+        category: {
+          connect: {
+            id: Categories[property.categoryId],
+          },
+        },
       },
     });
   }
