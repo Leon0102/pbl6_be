@@ -27,6 +27,11 @@ export class RoomTypesService {
               data: Array.from({ length: roomType.roomCount }).map(() => ({})),
             },
           },
+          photos: {
+            createMany: {
+              data: roomType.images.map((image) => ({ url: image })),
+            },
+          },
           property: {
             connect: {
               id: propertyId,

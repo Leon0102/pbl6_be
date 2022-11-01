@@ -8,6 +8,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Query,
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { brotliDecompressSync } from 'zlib';
@@ -20,13 +21,19 @@ export class PropertiesController {
 
   @Get()
   @HttpCode(200)
-  async findAll() {
+  async findByPage(@Query('page', ParseIntPipe) page: number) {
     try {
+      if (page < 1) {
+        throw new Error('Page number must be greater than 0');
+      }
+      const properties = await this.propertiesService.findByPage(page);
       return {
         success: true,
         statusCode: 200,
-        message: 'Properties fetched successfully',
-        data: {},
+        message: 'Property fetched successfully',
+        data: {
+          properties,
+        },
       };
     } catch (error) {
       throw new HttpException(

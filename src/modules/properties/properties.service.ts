@@ -9,7 +9,43 @@ import { RoomTypeDto } from '@modules/room-types/dtos/room-type.dto';
 export class PropertiesService {
   private readonly properties = db.property;
   constructor(private readonly roomTypesService: RoomTypesService) {}
-  async findAll() {}
+  async findByPage(page: number) {
+    const numberOfPropsPerPage = 10;
+    const results = await this.properties.findMany({
+      skip: (page - 1) * numberOfPropsPerPage,
+      take: numberOfPropsPerPage,
+      where: {
+        isDeleted: false,
+      },
+      include: {
+        photos: {
+          select: {
+            id: true,
+            url: true,
+          },
+        },
+        roomTypes: {
+          where: {
+            isDeleted: false,
+            rooms: {
+              some: {
+                isActive: true,
+                status: 'AVAILABLE',
+              },
+            },
+          },
+          select: {
+            price: true,
+          },
+          orderBy: {
+            price: 'asc',
+          },
+        },
+      },
+    });
+
+    return results;
+  }
 
   async findOne(id: number): Promise<Property> {
     const prop = await this.properties.findFirst({
@@ -18,9 +54,33 @@ export class PropertiesService {
         isDeleted: false,
       },
       include: {
+        photos: {
+          select: {
+            id: true,
+            url: true,
+          },
+        },
         roomTypes: {
           where: {
             isDeleted: false,
+          },
+          include: {
+            photos: {
+              select: {
+                id: true,
+                url: true,
+              },
+            },
+            _count: {
+              select: {
+                rooms: {
+                  where: {
+                    isActive: true,
+                    status: 'AVAILABLE',
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -47,6 +107,11 @@ export class PropertiesService {
           user: {
             connect: {
               id: userId,
+            },
+          },
+          photos: {
+            createMany: {
+              data: property.images.map((image) => ({ url: image })),
             },
           },
           category: {
