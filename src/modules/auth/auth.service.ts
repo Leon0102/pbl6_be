@@ -36,8 +36,11 @@ export class AuthService {
         const accessToken = await this.signToken(user.id, user.email,user.roleId);
         const refreshToken = await this.generateRefreshToken(user.id);
         return {
-            accessToken,
-            refreshToken,
+            user: user,
+            token:{
+                accessToken,
+                refreshToken,
+            }
         };
     }
 

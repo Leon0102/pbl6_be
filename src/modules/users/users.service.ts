@@ -1,5 +1,5 @@
 import { User } from '.prisma/client';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto';
@@ -28,9 +28,11 @@ export class UsersService {
 
   async createUser(user: CreateUserDto): Promise<User> {
     // get role in prisma role
+    if (this.getUserByEmail(user.email)) {
+      throw new BadRequestException('Email already exists');
+    }
     try {
-
-    const data : Prisma.UserCreateInput = {
+      const data : Prisma.UserCreateInput = {
       email: user.email,
       name: user.name,
       password: user.password,

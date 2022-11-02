@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { WrapResponseInterceptor } from 'interceptor/wrap-response.interceptor';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -21,7 +22,7 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  app.useGlobalInterceptors();
+  app.useGlobalInterceptors(new WrapResponseInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
