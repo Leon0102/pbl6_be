@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions","filteredRelationCount"]
 }
 
 datasource db {
@@ -160,6 +160,30 @@ enum RoomStatus {
   CLEANING
   MAINTENANCE
   OTHER
+}
+model Room {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  status      RoomStatus @default(AVAILABLE)
+  roomType  RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomTypeId Int     @map("room_type_id")
+  isActive Boolean  @default(true) @map("is_active")
+  roomReserved RoomReserved[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("rooms")
+}
+
+model Images {
+  id        Int      @id @default(autoincrement())
+  url       String
+  propertyId Int?    @map("property_id")
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomTypeId    Int?     @map("room_id")
+  RoomType      RoomType?     @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("images")
 }
 
 enum ReservationStatus {
