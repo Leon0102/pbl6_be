@@ -5,12 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto';
 import { CreateUserDto } from './dto/create-user.dto';
 
-
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   getAllUsers(): Promise<User[]> {
     return this.prisma.user.findMany();
@@ -19,53 +16,43 @@ export class UsersService {
   async getUserByEmail(email: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: {
-        email
-      }
+        email,
+      },
     });
-    delete user.password;
     return user;
   }
 
-  async createUser(user: CreateUserDto): Promise<User> {
-    // get role in prisma role
-    if (this.getUserByEmail(user.email)) {
+  async createUser(user: CreateUserDto): Promise<any> {
+    if (await this.getUserByEmail(user.email)) {
       throw new BadRequestException('Email already exists');
     }
-    try {
-      const data : Prisma.UserCreateInput = {
+    const data: Prisma.UserCreateInput = {
       email: user.email,
       name: user.name,
       password: user.password,
       phone: user.phone,
       role: {
         connect: {
-          id: user.role_id
-        }
-      }
-    }
-    console.log(user);
-    const rs =await  this.prisma.user.create({
-      data
+          id: user.role_id,
+        },
+      },
+    };
+    await this.prisma.user.create({
+      data,
     });
-    delete rs.password;
-    return rs;
-    }
-    catch (err) {
-      console.log(err);
-    }
+    return {};
   }
 
   async deleteUser(id: number): Promise<User> {
     try {
       const rs = await this.prisma.user.delete({
         where: {
-          id
-        }
+          id,
+        },
       });
       delete rs.password;
       return rs;
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
     }
   }
@@ -74,34 +61,34 @@ export class UsersService {
     try {
       const rs = await this.prisma.user.update({
         where: {
-          id
+          id,
         },
         data: {
           email: user.email,
           name: user.name,
           password: user.password,
           phone: user.phone,
-        }
+        },
       });
       delete rs.password;
       return rs;
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
     }
   }
   async saveOrUpdateRefreshToken(
     refreshToken: string,
     id: number,
-    refreshTokenExpires:Date) {
+    refreshTokenExpires: Date,
+  ) {
     await this.prisma.user.update({
       where: {
-        id
+        id,
       },
       data: {
         refreshToken,
-        refreshTokenExpiresAt: refreshTokenExpires
-      }
+        refreshTokenExpiresAt: refreshTokenExpires,
+      },
     });
   }
 }
