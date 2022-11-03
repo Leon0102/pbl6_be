@@ -49,6 +49,21 @@ export class PropertiesService {
         isDeleted: false,
       },
       include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         roomTypes: {
           where: {
             isDeleted: false,
@@ -78,9 +93,6 @@ export class PropertiesService {
           name: property.name,
           description: property.description,
           latitude: property.latitude,
-          location: {
-            ...property.location,
-          },
           longitude: property.longitude,
           streetAddress: property.streetAddress,
           facilities: {
@@ -90,6 +102,11 @@ export class PropertiesService {
           user: {
             connect: {
               id: userId,
+            },
+          },
+          ward: {
+            connect: {
+              code: property.wardCode,
             },
           },
           photos: property.images,
@@ -140,8 +157,10 @@ export class PropertiesService {
           ...property.facilities,
         },
         roomCount: property.roomCount,
-        location: {
-          ...property.location,
+        ward: {
+          connect: {
+            code: property.wardCode,
+          },
         },
         photos: property.images,
         category: {

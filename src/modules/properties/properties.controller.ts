@@ -56,12 +56,7 @@ export class PropertiesController {
     try {
       const property = await this.propertiesService.findOne(id);
       return {
-        success: true,
-        statusCode: 200,
-        message: 'Property fetched successfully',
-        data: {
-          property,
-        },
+        property,
       };
     } catch (error) {
       throw new HttpException(

@@ -1,14 +1,5 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsNumber,
-  Min,
-  IsObject,
-  IsArray,
-} from 'class-validator';
+import { IsNotEmpty, IsArray } from 'class-validator';
 
-import { Facility, Location } from '../interfaces';
 import { PropertyDto } from './property.dto';
 import { CreateRoomTypeDto } from '@modules/room-types/dtos/create-room-type.dto';
 import { Type } from 'class-transformer';

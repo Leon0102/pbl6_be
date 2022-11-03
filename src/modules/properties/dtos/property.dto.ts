@@ -7,7 +7,7 @@ import {
   IsObject,
 } from 'class-validator';
 
-import { Facility, Location } from '../interfaces';
+import { Facility } from '../interfaces';
 
 export class PropertyDto {
   @IsString()
@@ -26,8 +26,8 @@ export class PropertyDto {
   @IsNotEmpty()
   longitude: number;
 
-  @IsObject()
-  location: Location;
+  @IsString()
+  wardCode: string;
 
   @IsString()
   @IsNotEmpty()
