@@ -60,7 +60,8 @@ model Property {
   description String?
   latitude  Float
   longitude Float
-  location Json
+  wardCode String @db.VarChar(20) @map("ward_code")
+  ward Ward @relation(fields: [wardCode], references: [code])
   streetAddress String @map("street_address")
   facilities Json?
   roomCount Int @map("room_count")
@@ -148,4 +149,85 @@ model RoomReserved {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   @@map("room_reserved")
+}
+
+model AdministrativeRegion {
+  id Int @id
+  name String @db.VarChar(255)
+  nameEn String @db.VarChar(255) @map("name_en")
+  codeName String? @db.VarChar(255) @map("code_name")
+  codeNameEn String? @db.VarChar(255) @map("code_name_en")
+
+  provinces Province[]
+  @@map("administrative_regions")
+}
+
+model AdministrativeUnit {
+  id Int @id
+  fullName String? @db.VarChar(255) @map("full_name")
+  fullNameEn String? @db.VarChar(255) @map("full_name_en")
+  shortName String? @db.VarChar(255) @map("short_name")
+  shortNameEn String? @db.VarChar(255) @map("short_name_en")
+  codeName String? @db.VarChar(255) @map("code_name")
+  codeNameEn String? @db.VarChar(255) @map("code_name_en")
+  provinces Province[]
+  districts District[]
+  wards Ward[]
+  @@map("administrative_units")
+}
+
+
+model Province {
+  code String @id @db.VarChar(20)
+  name String @db.VarChar(255)
+  nameEn String? @db.VarChar(255) @map("name_en")
+  fullName String @db.VarChar(255) @map("full_name")
+  fullNameEn String? @db.VarChar(255) @map("full_name_en")
+  codeName String? @db.VarChar(255) @map("code_name")
+  
+  districts District[]
+
+  administrativeUnitId Int @map("administrative_unit_id")
+  administrativeUnit AdministrativeUnit @relation(fields: [administrativeUnitId], references: [id])
+
+  administrativeRegionId Int @map("administrative_region_id")
+  administrativeRegion AdministrativeRegion @relation(fields: [administrativeRegionId], references: [id])
+  @@map("provinces")
+}
+
+model District {
+  code String @id @db.VarChar(20)
+  name String @db.VarChar(255)
+  nameEn String @db.VarChar(255) @map("name_en")
+  fullName String @db.VarChar(255) @map("full_name")
+  fullNameEn String? @db.VarChar(255) @map("full_name_en")
+  codeName String? @db.VarChar(255) @map("code_name")
+
+  provinceCode String @db.VarChar(20) @map("province_code")
+  province Province @relation(fields: [provinceCode], references: [code])
+
+  wards Ward[]
+
+  administrativeUnitId Int @map("administrative_unit_id")
+  administrativeUnit AdministrativeUnit @relation(fields: [administrativeUnitId], references: [id])
+
+  @@map("districts")
+}
+
+model Ward {
+  code String @id @db.VarChar(20)
+  name String @db.VarChar(255)
+  nameEn String? @db.VarChar(255) @map("name_en")
+  fullName String? @db.VarChar(255) @map("full_name")
+  fullNameEn String? @db.VarChar(255) @map("full_name_en")
+  codeName String? @db.VarChar(255) @map("code_name")
+
+  districtCode String @db.VarChar(20) @map("district_code")
+  district District @relation(fields: [districtCode], references: [code])
+
+  properties Property[]
+
+  administrativeUnitId Int @map("administrative_unit_id")
+  administrativeUnit AdministrativeUnit @relation(fields: [administrativeUnitId], references: [id])
+  @@map("wards")
 }
