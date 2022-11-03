@@ -10,8 +10,11 @@ import {
   Param,
   Query,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
+import { RoleType } from '@prisma/client';
+import RoleGuard from 'guards/roles.guard';
 import { brotliDecompressSync } from 'zlib';
 import { CreatePropertyDto } from './dtos/create-property.dto';
 import { UpdatePropertyDto } from './dtos/update-property.dto';
@@ -69,6 +72,8 @@ export class PropertiesController {
       );
     }
   }
+
+  @UseGuards(RoleGuard(RoleType.HOST))
   @Post()
   @HttpCode(201)
   async create(@Body() createPropertyDto: CreatePropertyDto) {
@@ -78,12 +83,7 @@ export class PropertiesController {
         createPropertyDto,
       );
       if (isCreated) {
-        return {
-          success: true,
-          statusCode: 201,
-          message: 'Property created successfully',
-          data: {},
-        };
+        return {};
       }
       throw new Error('Property could not be created');
     } catch (error) {
@@ -101,12 +101,7 @@ export class PropertiesController {
   async remove(@Param('id', ParseIntPipe) id: number) {
     try {
       await this.propertiesService.remove(id);
-      return {
-        success: true,
-        statusCode: 200,
-        message: 'Property deleted successfully',
-        data: {},
-      };
+      return;
     } catch (error) {
       throw new HttpException(
         {
@@ -124,12 +119,7 @@ export class PropertiesController {
   ) {
     try {
       await this.propertiesService.update(id, updatePropertyDto);
-      return {
-        success: true,
-        statusCode: 200,
-        message: 'Property updated successfully',
-        data: {},
-      };
+      return;
     } catch (error) {
       throw new HttpException(
         {
