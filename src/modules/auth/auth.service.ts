@@ -32,12 +32,22 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new ForbiddenException('Invalid credentials');
+      throw new HttpException(
+        {
+          message: 'Email hoặc mật khẩu không chính xác',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const pwMatches = await argon.verify(user.password, dto.password);
     if (!pwMatches) {
-      throw new ForbiddenException('Invalid credentials');
+      throw new HttpException(
+        {
+          message: 'Email hoặc mật khẩu không chính xác',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     const accessToken = await this.signToken(user.id, user.email, user.roleId);
     const refreshToken = await this.generateRefreshToken(user.id);
