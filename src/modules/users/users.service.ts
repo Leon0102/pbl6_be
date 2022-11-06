@@ -1,5 +1,10 @@
 import { User } from '.prisma/client';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto';
@@ -24,7 +29,12 @@ export class UsersService {
 
   async createUser(user: CreateUserDto): Promise<any> {
     if (await this.getUserByEmail(user.email)) {
-      throw new BadRequestException('Email already exists');
+      throw new HttpException(
+        {
+          message: 'Người dùng với email này đã tồn tại',
+        },
+        HttpStatus.FORBIDDEN,
+      );
     }
     const data: Prisma.UserCreateInput = {
       email: user.email,
