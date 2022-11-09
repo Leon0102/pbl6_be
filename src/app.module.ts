@@ -8,11 +8,13 @@ import { PropertiesModule } from './modules/properties/properties.module';
 import { RoomTypesModule } from './modules/room-types/room-types.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { UsersModule } from './modules/users/users.module';
+import { SharedModule } from './shared/shared.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    SharedModule,
     AuthModule,
     UsersModule,
     PropertiesModule, RoomsModule, CategoriesModule, RoomTypesModule,

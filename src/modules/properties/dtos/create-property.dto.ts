@@ -1,16 +1,19 @@
-import { IsNotEmpty, IsArray } from 'class-validator';
+import { IsArray, IsNotEmpty } from 'class-validator';
 
-import { PropertyDto } from './property.dto';
 import { CreateRoomTypeDto } from '@modules/room-types/dtos/create-room-type.dto';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
+import { PropertyDto } from './property.dto';
 export class CreatePropertyDto extends PropertyDto {
+  @ApiProperty({ example: 'Hotel', description: 'Property type' })
   @IsArray()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
   @Type(() => CreateRoomTypeDto)
   roomTypes: CreateRoomTypeDto[];
 
+  @ApiProperty({
+    example: '1.jpg', description: 'Property main image',
+  })
   @IsArray()
   @IsNotEmpty()
   images: string[];

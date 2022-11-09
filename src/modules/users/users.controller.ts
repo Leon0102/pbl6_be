@@ -9,6 +9,7 @@ import { UpdateUserDto } from './dto';
 import { UsersService } from './users.service';
 
 
+
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
@@ -16,6 +17,7 @@ export class UsersController {
   constructor(
     private readonly userService: UsersService,
   ) {}
+
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
   @Get('me')

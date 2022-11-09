@@ -1,92 +1,132 @@
-import { Injectable } from '@nestjs/common';
-import { db } from '@common/utils/dbClient';
-import { Prisma, Property } from '@prisma/client';
-import { CreatePropertyDto } from './dtos/create-property.dto';
 import { Categories } from '@common/constants';
+import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
-import { RoomTypeDto } from '@modules/room-types/dtos/room-type.dto';
+import { Injectable } from '@nestjs/common';
+import { Prisma, Property } from '@prisma/client';
+import { SupabaseService } from '../../shared/supabase.service';
+import { CreatePropertyDto } from './dtos/create-property.dto';
 import { UpdatePropertyDto } from './dtos/update-property.dto';
 @Injectable()
 export class PropertiesService {
   private readonly properties = db.property;
-  constructor(private readonly roomTypesService: RoomTypesService) {}
+  constructor(
+    private readonly roomTypesService: RoomTypesService,
+    private readonly supabaseService: SupabaseService,
+  ) {}
   async findByPage(page: number) {
-    const numberOfPropsPerPage = 10;
-    const results = await this.properties.findMany({
-      skip: (page - 1) * numberOfPropsPerPage,
-      take: numberOfPropsPerPage,
-      where: {
-        isDeleted: false,
-      },
-      include: {
-        roomTypes: {
-          where: {
-            isDeleted: false,
-            rooms: {
-              some: {
-                isActive: true,
-                status: 'AVAILABLE',
+    try {
+      const numberOfPropsPerPage = 10;
+      const results = await this.properties.findMany({
+        skip: (page - 1) * numberOfPropsPerPage,
+        take: numberOfPropsPerPage,
+        where: {
+          isDeleted: false,
+        },
+        include: {
+          roomTypes: {
+            where: {
+              isDeleted: false,
+              rooms: {
+                some: {
+                  isActive: true,
+                  status: 'AVAILABLE',
+                },
               },
             },
-          },
-          select: {
-            price: true,
-          },
-          orderBy: {
-            price: 'asc',
+            select: {
+              price: true,
+            },
+            orderBy: {
+              price: 'asc',
+            },
           },
         },
-      },
-    });
+      });
 
-    return results;
+      return results;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async findOne(id: number): Promise<Property> {
-    const prop = await this.properties.findFirst({
-      where: {
-        id,
-        isDeleted: false,
-      },
-      include: {
-        ward: {
-          select: {
-            fullName: true,
-            district: {
-              select: {
-                fullName: true,
-                province: {
-                  select: {
-                    name: true,
+    try {
+      const prop = await this.properties.findFirst({
+        where: {
+          id,
+          isDeleted: false,
+        },
+        include: {
+          ward: {
+            select: {
+              fullName: true,
+              district: {
+                select: {
+                  fullName: true,
+                  province: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          roomTypes: {
+            where: {
+              isDeleted: false,
+            },
+            include: {
+              _count: {
+                select: {
+                  rooms: {
+                    where: {
+                      isActive: true,
+                      status: 'AVAILABLE',
+                    },
                   },
                 },
               },
             },
           },
         },
-        roomTypes: {
-          where: {
-            isDeleted: false,
-          },
-          include: {
-            _count: {
-              select: {
-                rooms: {
-                  where: {
-                    isActive: true,
-                    status: 'AVAILABLE',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-    return prop;
+      });
+      return prop;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  async create(userId: number, property: CreatePropertyDto): Promise<boolean> {
+  async create(
+    userId: number,
+    property: CreatePropertyDto,
+    files: Express.Multer.File[],
+  ): Promise<boolean> {
+    property.images = await Promise.all(
+      property.images.map(async (image) => {
+        if (files.find((file) => file.originalname === image)) {
+          return await this.supabaseService.uploadFile(
+            files.find((file) => file.originalname === image),
+          );
+        }
+      }),
+    );
+
+    property.roomTypes = await Promise.all(
+      property.roomTypes.map(async (roomType) => {
+        roomType.images = await Promise.all(
+          roomType.images.map(async (image) => {
+            if (files.find((file) => file.originalname === image)) {
+              return await this.supabaseService.uploadFile(
+                files.find((file) => file.originalname === image),
+              );
+            }
+          }),
+        );
+        return roomType;
+      }),
+    );
+
     await db.$transaction(async (tx: Prisma.TransactionClient) => {
       const prop = await tx.property.create({
         data: {
@@ -140,9 +180,37 @@ export class PropertiesService {
         isDeleted: true,
       },
     });
+
+    return {
+      message: 'Delete property successfully',
+    };
   }
 
-  async update(id: number, property: UpdatePropertyDto) {
+  async update(
+    id: number,
+    property: UpdatePropertyDto,
+    files: Express.Multer.File[],
+  ) {
+    const currProperty = await this.properties.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    currProperty.photos.forEach(async (image) => {
+      await this.supabaseService.deleteFile(image);
+    });
+
+    property.images = await Promise.all(
+      property.images.map(async (image) => {
+        if (files.find((file) => file.originalname === image)) {
+          return await this.supabaseService.uploadFile(
+            files.find((file) => file.originalname === image),
+          );
+        }
+      }),
+    );
+
     await this.properties.update({
       where: {
         id,
@@ -170,5 +238,9 @@ export class PropertiesService {
         },
       },
     });
+
+    return {
+      message: 'Update property successfully',
+    };
   }
 }

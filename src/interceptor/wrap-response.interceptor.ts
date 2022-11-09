@@ -12,6 +12,13 @@ export class WrapResponseInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             map((response) => {
+                if (response.message) {
+                    return {
+                        statusCode,
+                        success: true,
+                        message: response.message,
+                    };
+                }
                 return {
                     statusCode,
                     success: true,

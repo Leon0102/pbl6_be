@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { db } from '@common/utils/dbClient';
 
 @Injectable()
 export class RoomsService {
@@ -12,5 +11,18 @@ export class RoomsService {
     tx: Prisma.TransactionClient,
   ) {
     console.log(typeInfo);
+  }
+
+  async deleteMany(
+    listIds: number[],
+    tx: Prisma.TransactionClient,
+  ) {
+    await tx.room.deleteMany({
+      where: {
+        id: {
+          in: listIds,
+        },
+      },
+    });
   }
 }

@@ -184,7 +184,7 @@ model Province {
   fullName String @db.VarChar(255) @map("full_name")
   fullNameEn String? @db.VarChar(255) @map("full_name_en")
   codeName String? @db.VarChar(255) @map("code_name")
-  
+
   districts District[]
 
   administrativeUnitId Int @map("administrative_unit_id")

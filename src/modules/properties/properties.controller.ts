@@ -1,127 +1,77 @@
+import { GetUser } from '@modules/auth/decorators';
 import {
-  Controller,
-  Post,
-  Delete,
   Body,
-  HttpCode,
-  HttpException,
+  Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
-  Query,
   Patch,
+  Post,
+  Query,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
-import { RoleType } from '@prisma/client';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiAcceptedResponse, ApiTags } from '@nestjs/swagger';
+import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
-import { brotliDecompressSync } from 'zlib';
 import { CreatePropertyDto } from './dtos/create-property.dto';
 import { UpdatePropertyDto } from './dtos/update-property.dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
+@ApiTags('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @Get()
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
+  @ApiAcceptedResponse({
+    type: String,
+    description: 'Find all properties by page',
+  })
   async findByPage(@Query('page', ParseIntPipe) page: number) {
-    try {
-      if (page < 1) {
-        throw new Error('Page number must be greater than 0');
-      }
-      const properties = await this.propertiesService.findByPage(page);
-      return {
-        success: true,
-        statusCode: 200,
-        message: 'Property fetched successfully',
-        data: {
-          properties,
-        },
-      };
-    } catch (error) {
-      throw new HttpException(
-        {
-          message: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    return this.propertiesService.findByPage(page);
   }
   // Get Details of a property
   @Get(':id')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async findById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const property = await this.propertiesService.findOne(id);
-      return {
-        property,
-      };
-    } catch (error) {
-      throw new HttpException(
-        {
-          message: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    return this.propertiesService.findOne(id);
   }
 
   @UseGuards(RoleGuard(RoleType.HOST))
   @Post()
-  @HttpCode(201)
-  async create(@Body() createPropertyDto: CreatePropertyDto) {
-    try {
-      const isCreated: boolean = await this.propertiesService.create(
-        2,
-        createPropertyDto,
-      );
-      if (isCreated) {
-        return {};
-      }
-      throw new Error('Property could not be created');
-    } catch (error) {
-      // console.error(error);
-      throw new HttpException(
-        {
-          message: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FilesInterceptor('files'))
+  async create(
+    @GetUser() user: User,
+    @Body() createPropertyDto: CreatePropertyDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.propertiesService.create(user.id, createPropertyDto, files);
   }
+
+  @UseGuards(RoleGuard(RoleType.HOST))
   @Delete(':id')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.ACCEPTED)
   async remove(@Param('id', ParseIntPipe) id: number) {
-    try {
-      await this.propertiesService.remove(id);
-      return;
-    } catch (error) {
-      throw new HttpException(
-        {
-          message: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    return this.propertiesService.remove(id);
   }
+
+  @UseGuards(RoleGuard(RoleType.HOST))
   @Patch(':id')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseInterceptors(FilesInterceptor('files'))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePropertyDto: UpdatePropertyDto,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    try {
-      await this.propertiesService.update(id, updatePropertyDto);
-      return;
-    } catch (error) {
-      throw new HttpException(
-        {
-          message: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    return this.propertiesService.update(id, updatePropertyDto, files);
   }
 }
