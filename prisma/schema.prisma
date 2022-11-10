@@ -80,7 +80,7 @@ model Property {
 
 model RoomType {
   id        Int      @id @default(autoincrement())
-  name      String   @unique
+  name      String
   price     Float
   propertyId Int     @map("property_id")
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)

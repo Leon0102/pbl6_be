@@ -4,11 +4,11 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import { WrapResponseInterceptor } from 'interceptor/wrap-response.interceptor';
 import { AppModule } from './app.module';
+import { WrapResponseInterceptor } from './interceptor/wrap-response.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule,{cors: true});
+  const app = await NestFactory.create(AppModule, { cors: true });
 
   app.setGlobalPrefix('/api');
   app.use(helmet());

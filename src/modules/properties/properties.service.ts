@@ -1,10 +1,11 @@
-import { Categories } from '@common/constants';
+import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Property } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto } from './dtos/create-property.dto';
+import { SearchPropertyDto } from './dtos/search-property.dto';
 import { UpdatePropertyDto } from './dtos/update-property.dto';
 @Injectable()
 export class PropertiesService {
@@ -171,7 +172,20 @@ export class PropertiesService {
     return true;
   }
 
-  async remove(id: number) {
+  async checkPropertyOwner(userId: number, propertyId: number) {
+    const prop = await this.properties.findFirst({
+      where: {
+        id: propertyId,
+        userId,
+      },
+    });
+    return !!prop;
+  }
+
+  async remove(userId: number, id: number) {
+    if (!(await this.checkPropertyOwner(userId, id))) {
+      throw new NotFoundException('Property not found');
+    }
     await this.properties.update({
       where: {
         id,
@@ -187,10 +201,16 @@ export class PropertiesService {
   }
 
   async update(
+    userId: number,
     id: number,
     property: UpdatePropertyDto,
     files: Express.Multer.File[],
   ) {
+
+    if (!(await this.checkPropertyOwner(userId, id))) {
+      throw new NotFoundException('Property not found');
+    }
+
     const currProperty = await this.properties.findFirst({
       where: {
         id,
@@ -242,5 +262,53 @@ export class PropertiesService {
     return {
       message: 'Update property successfully',
     };
+  }
+
+
+  // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
+
+  async search(
+    search: SearchPropertyDto,
+  ) {
+
+    const { location, checkIn, checkOut, rooms, guests, page } = search;
+    // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
+    const properties = await this.properties.findMany({
+      take: page * 10,
+      skip: (page - 1) * 10,
+      where: {
+        ward: {
+          code: location,
+        },
+        roomTypes: {
+          some: {
+            rooms: {
+              some: {
+                AND: [
+                  {
+                    isActive: true,
+                    status: 'AVAILABLE',
+                  },
+                  {
+                    updatedAt: {
+                      gte: checkIn,
+                      lte: checkOut,
+                    },
+                  },
+                ],
+              },
+            },
+            maxGuests: {
+              gte: guests,
+            }
+          },
+        },
+        roomCount: {
+          gte: rooms,
+        },
+      }
+    });
+
+    return properties;
   }
 }

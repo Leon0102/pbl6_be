@@ -25,4 +25,30 @@ export class RoomsService {
       },
     });
   }
+
+  async update(id: number, data: Prisma.RoomUpdateInput) {
+    // await .room.update({
+    //   where: {
+    //     id,
+    //   },
+    //   data,
+    // });
+  }
+
+  async delete(id: number) {
+    // await db.room.delete({
+    //   where: {
+    //     id,
+    //   },
+    // });
+  }
+
+  async getDetails(id: number) {
+    // return await db.room.findUnique({
+    //   where: {
+    //     id,
+    //   },
+    // });
+    //
+  }
 }
