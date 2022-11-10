@@ -27,7 +27,7 @@ export class UsersController {
     return user;
   }
 
-  @UseGuards(RoleGuard(RoleType.ADMIN))
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
   @Get()
   getAll() {
@@ -41,10 +41,10 @@ export class UsersController {
     return this.userService.updateUser(user.id, dto);
   }
 
-  @UseGuards(RoleGuard(RoleType.ADMIN))
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
   @Delete('/:id')
-  delete(@Param('id',ParseIntPipe) id: number) {
+  delete(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);
   }
 }
