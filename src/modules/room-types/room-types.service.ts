@@ -2,8 +2,8 @@ import { db } from '@common/utils/dbClient';
 import { RoomsService } from '@modules/rooms/rooms.service';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { SupabaseService } from '../../shared/supabase.service';
-import { CreateRoomTypeDto } from './dtos/create-room-type.dto';
-import { UpdateRoomTypeDto } from './dtos/update-room-type.dto';
+import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto';
+
 @Injectable()
 export class RoomTypesService {
   private readonly roomTypes = db.roomType;

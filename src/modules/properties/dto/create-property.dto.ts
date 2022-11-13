@@ -1,6 +1,6 @@
 import { IsArray, IsNotEmpty } from 'class-validator';
 
-import { CreateRoomTypeDto } from '@modules/room-types/dtos/create-room-type.dto';
+import { CreateRoomTypeDto } from '@modules/room-types/dto/create-room-type.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { PropertyDto } from './property.dto';
