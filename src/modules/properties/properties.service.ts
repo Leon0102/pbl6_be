@@ -4,9 +4,7 @@ import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Property } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
-import { CreatePropertyDto } from './dtos/create-property.dto';
-import { SearchPropertyDto } from './dtos/search-property.dto';
-import { UpdatePropertyDto } from './dtos/update-property.dto';
+import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 @Injectable()
 export class PropertiesService {
   private readonly properties = db.property;
@@ -277,9 +275,29 @@ export class PropertiesService {
       take: page * 10,
       skip: (page - 1) * 10,
       where: {
-        ward: {
-          code: location,
-        },
+        OR: [
+          {
+            ward: {
+              code: location,
+            },
+          },
+          {
+            ward: {
+              district: {
+                code: location,
+              },
+            },
+          },
+          {
+            ward: {
+              district: {
+                province: {
+                  code: location,
+                },
+              },
+            },
+          },
+        ],
         roomTypes: {
           some: {
             rooms: {

@@ -4,7 +4,7 @@ import { ApiAcceptedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from '../../guards/roles.guard';
 import { GetUser } from '../auth/decorators';
-import { CreateRoomTypeDto } from './dtos/create-room-type.dto';
+import { CreateRoomTypeDto } from './dto/create-room-type.dto';
 import { RoomTypesService } from './room-types.service';
 
 @Controller('room-types')

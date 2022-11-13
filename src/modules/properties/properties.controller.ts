@@ -16,12 +16,10 @@ import {
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiAcceptedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
-import { CreatePropertyDto } from './dtos/create-property.dto';
-import { SearchPropertyDto } from './dtos/search-property.dto';
-import { UpdatePropertyDto } from './dtos/update-property.dto';
+import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
@@ -36,6 +34,7 @@ export class PropertiesController {
     type: String,
     description: 'Find all properties by page',
   })
+  @ApiOperation({ summary: 'Find all properties by page' })
   async findByPage(
     @GetUser() user: User,
     @Query('page', ParseIntPipe) page: number) {
@@ -44,7 +43,7 @@ export class PropertiesController {
 
   @Get('filters')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(RoleGuard([RoleType.HOST, RoleType.GUEST]))
+  @ApiOperation({ summary: 'Search properties' })
   @ApiAcceptedResponse({
     type: String,
     description: 'Search properties by page',
@@ -58,6 +57,7 @@ export class PropertiesController {
   // Get Details of a property
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find One Properties' })
   async findById(
 
     @Param('id', ParseIntPipe) id: number) {
@@ -67,6 +67,7 @@ export class PropertiesController {
   @UseGuards(RoleGuard([RoleType.HOST]))
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a property' })
   @UseInterceptors(FilesInterceptor('files'))
   async create(
     @GetUser() user: User,
@@ -78,6 +79,7 @@ export class PropertiesController {
 
   @UseGuards(RoleGuard([RoleType.HOST]))
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a property' })
   @HttpCode(HttpStatus.ACCEPTED)
   async remove(
     @GetUser() user: User,
@@ -87,6 +89,7 @@ export class PropertiesController {
 
   @UseGuards(RoleGuard([RoleType.HOST]))
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a property' })
   @HttpCode(HttpStatus.ACCEPTED)
   @UseInterceptors(FilesInterceptor('files'))
   async update(
