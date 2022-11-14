@@ -1,8 +1,11 @@
+import { db } from '@common/utils/dbClient';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, RoomStatus } from '@prisma/client';
 
 @Injectable()
 export class RoomsService {
+
+  private readonly room = db.room;
   async createMany(
     typeInfo: {
       id: number;
@@ -14,7 +17,7 @@ export class RoomsService {
   }
 
   async deleteMany(
-    listIds: number[],
+    listIds: string[],
     tx: Prisma.TransactionClient,
   ) {
     await tx.room.deleteMany({
@@ -26,7 +29,7 @@ export class RoomsService {
     });
   }
 
-  async update(id: number, data: Prisma.RoomUpdateInput) {
+  async update(id: string, data: Prisma.RoomUpdateInput) {
     // await .room.update({
     //   where: {
     //     id,
@@ -50,5 +53,17 @@ export class RoomsService {
     //   },
     // });
     //
+  }
+
+  async updateStatusRoom(id: string, status: RoomStatus) {
+    return await db.room.update({
+      where: {
+        id
+      },
+      data: {
+        status,
+        isActive: false
+      }
+    })
   }
 }

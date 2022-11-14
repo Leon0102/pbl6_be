@@ -54,7 +54,7 @@ export class UsersService {
     return {};
   }
 
-  async deleteUser(id: number): Promise<User> {
+  async deleteUser(id: string): Promise<User> {
     try {
       const rs = await this.prisma.user.delete({
         where: {
@@ -68,7 +68,7 @@ export class UsersService {
     }
   }
 
-  async updateUser(id: number, user: UpdateUserDto): Promise<User> {
+  async updateUser(id: string, user: UpdateUserDto): Promise<User> {
     try {
       const rs = await this.prisma.user.update({
         where: {
@@ -89,7 +89,7 @@ export class UsersService {
   }
   async saveOrUpdateRefreshToken(
     refreshToken: string,
-    id: number,
+    id: string,
     refreshTokenExpires: Date,
   ) {
     await this.prisma.user.update({

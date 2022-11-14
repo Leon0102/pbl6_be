@@ -48,7 +48,7 @@ export class PropertiesService {
     }
   }
 
-  async findOne(id: number): Promise<Property> {
+  async findOne(id: string): Promise<Property> {
     try {
       const prop = await this.properties.findFirst({
         where: {
@@ -97,7 +97,7 @@ export class PropertiesService {
   }
 
   async create(
-    userId: number,
+    userId: string,
     property: CreatePropertyDto,
     files: Express.Multer.File[],
   ): Promise<boolean> {
@@ -170,7 +170,7 @@ export class PropertiesService {
     return true;
   }
 
-  async checkPropertyOwner(userId: number, propertyId: number) {
+  async checkPropertyOwner(userId: string, propertyId: string) {
     const prop = await this.properties.findFirst({
       where: {
         id: propertyId,
@@ -180,7 +180,7 @@ export class PropertiesService {
     return !!prop;
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     if (!(await this.checkPropertyOwner(userId, id))) {
       throw new NotFoundException('Property not found');
     }
@@ -199,8 +199,8 @@ export class PropertiesService {
   }
 
   async update(
-    userId: number,
-    id: number,
+    userId: string,
+    id: string,
     property: UpdatePropertyDto,
     files: Express.Multer.File[],
   ) {
@@ -262,6 +262,13 @@ export class PropertiesService {
     };
   }
 
+  getMyProperties(userId: string) {
+    return this.properties.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 

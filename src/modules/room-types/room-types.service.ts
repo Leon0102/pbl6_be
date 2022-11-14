@@ -11,7 +11,7 @@ export class RoomTypesService {
     private readonly roomsService: RoomsService,
     private readonly supabaseService: SupabaseService,
   ) {}
-  createMany(propertyId: number, roomTypes: CreateRoomTypeDto[]) {
+  createMany(propertyId: string, roomTypes: CreateRoomTypeDto[]) {
     roomTypes.forEach(async (roomType) => {
       await this.roomTypes.create({
         data: {
@@ -42,8 +42,8 @@ export class RoomTypesService {
     });
   }
   async create(
-    userId: number,
-    propertyId: number,
+    userId: string,
+    propertyId: string,
     roomType: CreateRoomTypeDto,
   ) {
     // check if property belongs to user
@@ -81,7 +81,7 @@ export class RoomTypesService {
     });
   }
 
-  async createRoomType(userId: number, propertyId: number, roomType: CreateRoomTypeDto, files: Express.Multer.File[]) {
+  async createRoomType(userId: string, propertyId: string, roomType: CreateRoomTypeDto, files: Express.Multer.File[]) {
     // check if property belongs to user
     const propertyBelongsToUser = await db.property.findFirst({
       where: {
@@ -132,7 +132,7 @@ export class RoomTypesService {
     };
   }
 
-  async update(userId: number, id: number, roomType: UpdateRoomTypeDto, files: Express.Multer.File[]) {
+  async update(userId: string, id: string, roomType: UpdateRoomTypeDto, files: Express.Multer.File[]) {
     // check if room type belongs to user
     const roomTypeBelongsToUser = await this.roomTypes.findFirstOrThrow({
       where: {
@@ -190,7 +190,7 @@ export class RoomTypesService {
     };
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     // check if room type belongs to user
     const roomTypeBelongsToUser = await this.roomTypes.findFirst({
       where: {
@@ -219,21 +219,21 @@ export class RoomTypesService {
     };
   }
 
-  async getRoomType(id: number) {
-    const rs = await this.roomTypes.findUnique({
+  async getRoomType(userId: string, id: string) {
+    const roomType = await this.roomTypes.findFirst({
       where: {
         id,
-      },
-      include: {
-        rooms: true,
+        property: {
+          userId,
+        },
       },
     });
 
-    if (!rs) {
+    if (!roomType) {
       throw new NotFoundException('Room type not found');
     }
 
-    return rs;
+    return roomType;
   }
 
 }
