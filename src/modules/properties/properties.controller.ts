@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiAcceptedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
@@ -41,6 +41,20 @@ export class PropertiesController {
     return this.propertiesService.findByPage(page);
   }
 
+  @Get('my-properties')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.HOST]))
+  @ApiOkResponse({
+    type: String,
+    description: 'Find all properties by host',
+  })
+  @ApiOperation({ summary: 'Find all properties by host' })
+  async getMyProperties(
+    @GetUser() user: User,
+  ) {
+    return this.propertiesService.getMyProperties(user.id);
+  }
+
   @Get('filters')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Search properties' })
@@ -60,7 +74,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Find One Properties' })
   async findById(
 
-    @Param('id', ParseIntPipe) id: number) {
+    @Param('id', ParseIntPipe) id: string) {
     return this.propertiesService.findOne(id);
   }
 
@@ -83,7 +97,7 @@ export class PropertiesController {
   @HttpCode(HttpStatus.ACCEPTED)
   async remove(
     @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: number) {
+    @Param('id', ParseIntPipe) id: string) {
     return this.propertiesService.remove(user.id, id);
   }
 
@@ -94,7 +108,7 @@ export class PropertiesController {
   @UseInterceptors(FilesInterceptor('files'))
   async update(
     @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {

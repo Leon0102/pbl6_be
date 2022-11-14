@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsNumber, IsObject, IsOptional, IsString, Min
+  IsNumber, IsObject, IsOptional, IsString, Max, Min
 } from 'class-validator';
 import { Facility, RoomSize } from '../interfaces';
 
@@ -46,5 +46,6 @@ export class RoomTypeDto {
 
   @IsNumber()
   @Min(0)
+  @Max(10)
   roomCount: number;
 }

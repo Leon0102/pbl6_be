@@ -1,15 +1,12 @@
 import { CreateUserDto } from '@modules/users/dto/create-user.dto';
 import { UsersService } from '@modules/users/users.service';
 import {
-  BadRequestException,
-  ForbiddenException,
   HttpStatus,
-  Injectable,
+  Injectable
 } from '@nestjs/common';
 import { HttpException } from '@nestjs/common/exceptions';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import * as argon from 'argon2';
 import * as randtoken from 'rand-token';
 import { PrismaService } from '../prisma/prisma.service';
@@ -93,7 +90,7 @@ export class AuthService {
     }
   }
 
-  async signToken(userId: number, email: string, roleId: string) {
+  async signToken(userId: string, email: string, roleId: string) {
     const payload = {
       sub: userId,
       email,
@@ -106,7 +103,7 @@ export class AuthService {
     });
     return token;
   }
-  async generateRefreshToken(userId: number): Promise<string> {
+  async generateRefreshToken(userId: string): Promise<string> {
     const refreshToken = randtoken.generate(32);
     const expirydate = new Date();
     expirydate.setDate(expirydate.getDate() + 6);

@@ -26,7 +26,7 @@ model Role {
 }
 
 model User {
-  id                    Int           @id @default(autoincrement())
+  id                    String        @id @default(uuid())
   email                 String        @unique
   name                  String?
   password              String
@@ -41,7 +41,6 @@ model User {
   updatedAt             DateTime      @updatedAt @map("updated_at")
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  stripeCustomerId      String?
   reservations          Reservation[]
   properties            Property[]
 
@@ -60,7 +59,7 @@ model Category {
 }
 
 model Property {
-  id            Int        @id @default(autoincrement())
+  id            String    @id @default(uuid())
   name          String
   description   String?
   latitude      Float
@@ -73,7 +72,7 @@ model Property {
   roomTypes     RoomType[]
   photos        String[]
   isDeleted     Boolean    @default(false) @map("is_deleted")
-  userId        Int        @map("user_id")
+  userId        String        @map("user_id")
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   category      Category   @relation(fields: [categoryId], references: [id])
   categoryId    String     @map("category_id")
@@ -84,10 +83,10 @@ model Property {
 }
 
 model RoomType {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(uuid())
   name        String
   price       Float
-  propertyId  Int      @map("property_id")
+  propertyId  String      @map("property_id")
   property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   roomCount   Int      @map("room_count")
   rooms       Room[]
@@ -114,11 +113,11 @@ enum RoomStatus {
 }
 
 model Room {
-  id           Int            @id @default(autoincrement())
+  id           String         @id @default(uuid())
   name         String?
   status       RoomStatus     @default(AVAILABLE)
   roomType     RoomType       @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
-  roomTypeId   Int            @map("room_type_id")
+  roomTypeId   String            @map("room_type_id")
   isActive     Boolean        @default(true) @map("is_active")
   roomReserved RoomReserved[]
   createdAt    DateTime       @default(now()) @map("created_at")
@@ -136,13 +135,13 @@ enum ReservationStatus {
 }
 
 model Reservation {
-  id             Int               @id @default(autoincrement())
+  id             String            @id @default(uuid())
   checkIn        DateTime          @map("check_in")
   checkOut       DateTime          @map("check_out")
   specialRequest String?           @map("special_request")
   status         ReservationStatus
   user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         Int               @map("user_id")
+  userId         String            @map("user_id")
   roomReserved   RoomReserved[]
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
@@ -151,10 +150,10 @@ model Reservation {
 }
 
 model RoomReserved {
-  id            Int         @id @default(autoincrement())
-  roomId        Int         @map("room_id")
+  id            String      @id @default(uuid())
+  roomId        String      @map("room_id")
   room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  reservationId Int         @map("reservation_id")
+  reservationId String      @map("reservation_id")
   reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")

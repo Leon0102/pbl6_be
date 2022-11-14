@@ -2,22 +2,26 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ReservationStatus, RoleType } from '@prisma/client';
 import { db } from '../../common/utils/dbClient';
 import { StatusReservation } from '../../constants';
+import { RoomsService } from '../rooms/rooms.service';
 import { CreateReservationDto } from './dto';
 
 @Injectable()
 export class ReservationsService {
     private readonly reservation = db.reservation;
     constructor(
-
+        private readonly roomsService: RoomsService,
     ) {}
 
-    async createReservation(userId: number, dto: CreateReservationDto) {
+    async createReservation(userId: string, dto: CreateReservationDto) {
         // create reservation with room id is get first room available from room type
         const room = await db.room.findFirst({
             where: {
                 status: 'AVAILABLE',
                 isActive: true,
                 roomTypeId: dto.roomTypeId,
+                updatedAt: {
+                    lte: new Date(dto.checkIn),
+                }
             },
             select: {
                 id: true,
@@ -35,8 +39,8 @@ export class ReservationsService {
                 specialRequest: dto.specialRequest,
                 status: ReservationStatus.PENDING,
                 roomReserved: {
-                    connect: {
-                        id: room.id,
+                    create: {
+                        roomId: room.id,
                     }
                 },
                 user: {
@@ -60,7 +64,7 @@ export class ReservationsService {
         });
     }
 
-    async getReservationOfHost(userId: number) {
+    async getReservationOfHost(userId: string) {
         // check if user is host
         const user = await db.user.findUnique({
             where: {
@@ -98,7 +102,18 @@ export class ReservationsService {
         });
     }
 
-    async cancelReservation(userId: number, id: number) {
+    async getUserReservation(userId: string) {
+        return await this.reservation.findMany({
+            where: {
+                userId,
+            },
+            include: {
+                roomReserved: true,
+            }
+        })
+    }
+
+    async cancelReservation(userId: string, id: string) {
         const reservation = await this.reservation.findUnique({
             where: {
                 id,
@@ -135,22 +150,22 @@ export class ReservationsService {
         }
     }
 
-    async confirmReservation(userId: number, id: number) {
+    async confirmReservation(id: string) {
         const reservation = await this.reservation.findUnique({
             where: {
                 id,
             },
             select: {
                 status: true,
-                userId: true,
+                roomReserved: {
+                    select: {
+                        roomId: true,
+                    }
+                }
             }
         });
 
         if (!reservation) {
-            throw new NotFoundException('Not found reservation');
-        }
-
-        if (reservation.userId !== userId) {
             throw new NotFoundException('Not found reservation');
         }
 
@@ -165,6 +180,10 @@ export class ReservationsService {
             data: {
                 status: ReservationStatus.CONFIRMED,
             }
+        });
+
+        reservation.roomReserved.forEach(async (room) => {
+            await this.roomsService.updateStatusRoom(room.roomId, 'UNAVAILABLE');
         });
 
         return {

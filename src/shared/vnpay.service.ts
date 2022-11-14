@@ -29,15 +29,11 @@ export class VnPayService {
         var returnUrl = this.configService.get('vnp_ReturnUrl');
 
         var date = new Date();
-
-        // var createDate = dateFormat(date, 'yyyymmddHHmmss');
-        // format createDate to yyyymmddHHmmss if hours length < 2 or minutes length < 2 or seconds length < 2 or month length < 2 or day length < 2 add 0 before
-
-        var createDate = date.getFullYear().toString() + (date.getMonth() + 1).toString() + date.getDate().toString() + '0' + date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString();
-        // format orderId to HHmmss
-        var orderId = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString();
+        var createDate = date.getFullYear().toString() + (date.getMonth() + 1).toString() + date.getDate().toString() + date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString();
+        var orderId = dto.orderId;
         var amount = dto.amount;
         var bankCode = dto.bankCode;
+        var userId = dto.userid;
 
         var orderInfo = dto.orderDescription;
         var orderType = dto.orderType;
@@ -50,7 +46,7 @@ export class VnPayService {
         vnp_Params['vnp_Version'] = '2.1.0';
         vnp_Params['vnp_Command'] = 'pay';
         vnp_Params['vnp_TmnCode'] = tmnCode;
-        // vnp_Params['vnp_Merchant'] = ''
+        vnp_Params['vnp_Merchant'] = userId;
         vnp_Params['vnp_Locale'] = locale;
         vnp_Params['vnp_CurrCode'] = currCode;
         vnp_Params['vnp_TxnRef'] = orderId;
