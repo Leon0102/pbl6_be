@@ -1,7 +1,12 @@
 import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
 import { Prisma, Property } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
@@ -10,70 +15,35 @@ export class PropertiesService {
   private readonly properties = db.property;
   constructor(
     private readonly roomTypesService: RoomTypesService,
-    private readonly supabaseService: SupabaseService,
+    private readonly supabaseService: SupabaseService
   ) {}
-  async findByPage(page: number) {
-    try {
-      const numberOfPropsPerPage = 10;
-      const results = await this.properties.findMany({
-        skip: (page - 1) * numberOfPropsPerPage,
-        take: numberOfPropsPerPage,
-        where: {
-          isDeleted: false,
-        },
-        include: {
-          roomTypes: {
-            where: {
-              isDeleted: false,
-              rooms: {
-                some: {
-                  isActive: true,
-                  status: 'AVAILABLE',
-                },
-              },
-            },
-            select: {
-              price: true,
-            },
-            orderBy: {
-              price: 'asc',
-            },
-          },
-        },
-      });
 
-      return results;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async findOne(id: string): Promise<Property> {
+  async findOne(id: string): Promise<any> {
     try {
-      const prop = await this.properties.findFirst({
+      const prop = await this.properties.findFirstOrThrow({
         where: {
           id,
-          isDeleted: false,
+          isDeleted: false
         },
         include: {
           ward: {
             select: {
-              fullName: true,
+              name: true,
               district: {
                 select: {
-                  fullName: true,
+                  name: true,
                   province: {
                     select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
+                      name: true
+                    }
+                  }
+                }
+              }
+            }
           },
           roomTypes: {
             where: {
-              isDeleted: false,
+              isDeleted: false
             },
             include: {
               _count: {
@@ -81,49 +51,54 @@ export class PropertiesService {
                   rooms: {
                     where: {
                       isActive: true,
-                      status: 'AVAILABLE',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+                      status: 'AVAILABLE'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       });
       return prop;
     } catch (error) {
-      console.log(error);
+      throw new HttpException(
+        {
+          message: 'Property not found'
+        },
+        HttpStatus.NOT_FOUND
+      );
     }
   }
 
   async create(
     userId: string,
     property: CreatePropertyDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ): Promise<boolean> {
     property.images = await Promise.all(
-      property.images.map(async (image) => {
-        if (files.find((file) => file.originalname === image)) {
+      property.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find((file) => file.originalname === image),
+            files.find(file => file.originalname === image)
           );
         }
-      }),
+      })
     );
 
     property.roomTypes = await Promise.all(
-      property.roomTypes.map(async (roomType) => {
+      property.roomTypes.map(async roomType => {
         roomType.images = await Promise.all(
-          roomType.images.map(async (image) => {
-            if (files.find((file) => file.originalname === image)) {
+          roomType.images.map(async image => {
+            if (files.find(file => file.originalname === image)) {
               return await this.supabaseService.uploadFile(
-                files.find((file) => file.originalname === image),
+                files.find(file => file.originalname === image)
               );
             }
-          }),
+          })
         );
         return roomType;
-      }),
+      })
     );
 
     await db.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -135,34 +110,34 @@ export class PropertiesService {
           longitude: property.longitude,
           streetAddress: property.streetAddress,
           facilities: {
-            ...property.facilities,
+            ...property.facilities
           },
           roomCount: property.roomCount,
           user: {
             connect: {
-              id: userId,
-            },
+              id: userId
+            }
           },
           ward: {
             connect: {
-              code: property.wardCode,
-            },
+              code: property.wardCode
+            }
           },
           photos: property.images,
           category: {
             connect: {
-              id: Categories[property.categoryId],
-            },
-          },
-        },
+              id: Categories[property.categoryId]
+            }
+          }
+        }
       });
       try {
         this.roomTypesService.createMany(prop.id, property.roomTypes);
       } catch (error) {
         await db.property.delete({
           where: {
-            id: prop.id,
-          },
+            id: prop.id
+          }
         });
         return false;
       }
@@ -174,8 +149,8 @@ export class PropertiesService {
     const prop = await this.properties.findFirst({
       where: {
         id: propertyId,
-        userId,
-      },
+        userId
+      }
     });
     return !!prop;
   }
@@ -186,15 +161,15 @@ export class PropertiesService {
     }
     await this.properties.update({
       where: {
-        id,
+        id
       },
       data: {
-        isDeleted: true,
-      },
+        isDeleted: true
+      }
     });
 
     return {
-      message: 'Delete property successfully',
+      message: 'Delete property successfully'
     };
   }
 
@@ -202,36 +177,35 @@ export class PropertiesService {
     userId: string,
     id: string,
     property: UpdatePropertyDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ) {
-
     if (!(await this.checkPropertyOwner(userId, id))) {
       throw new NotFoundException('Property not found');
     }
 
     const currProperty = await this.properties.findFirst({
       where: {
-        id,
-      },
+        id
+      }
     });
 
-    currProperty.photos.forEach(async (image) => {
+    currProperty.photos.forEach(async image => {
       await this.supabaseService.deleteFile(image);
     });
 
     property.images = await Promise.all(
-      property.images.map(async (image) => {
-        if (files.find((file) => file.originalname === image)) {
+      property.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find((file) => file.originalname === image),
+            files.find(file => file.originalname === image)
           );
         }
-      }),
+      })
     );
 
     await this.properties.update({
       where: {
-        id,
+        id
       },
       data: {
         name: property.name,
@@ -240,42 +214,39 @@ export class PropertiesService {
         longitude: property.longitude,
         streetAddress: property.streetAddress,
         facilities: {
-          ...property.facilities,
+          ...property.facilities
         },
         roomCount: property.roomCount,
         ward: {
           connect: {
-            code: property.wardCode,
-          },
+            code: property.wardCode
+          }
         },
         photos: property.images,
         category: {
           connect: {
-            id: Categories[property.categoryId],
-          },
-        },
-      },
+            id: Categories[property.categoryId]
+          }
+        }
+      }
     });
 
     return {
-      message: 'Update property successfully',
+      message: 'Update property successfully'
     };
   }
 
   getMyProperties(userId: string) {
     return this.properties.findMany({
       where: {
-        userId,
-      },
+        userId
+      }
     });
   }
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
-  async search(
-    search: SearchPropertyDto,
-  ) {
-
+  async search(search: SearchPropertyDto) {
     const { location, checkIn, checkOut, rooms, guests, page } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
@@ -285,25 +256,25 @@ export class PropertiesService {
         OR: [
           {
             ward: {
-              code: location,
-            },
+              code: location
+            }
           },
           {
             ward: {
               district: {
-                code: location,
-              },
-            },
+                code: location
+              }
+            }
           },
           {
             ward: {
               district: {
                 province: {
-                  code: location,
-                },
-              },
-            },
-          },
+                  code: location
+                }
+              }
+            }
+          }
         ],
         roomTypes: {
           some: {
@@ -312,28 +283,49 @@ export class PropertiesService {
                 AND: [
                   {
                     isActive: true,
-                    status: 'AVAILABLE',
+                    status: 'AVAILABLE'
                   },
                   {
                     updatedAt: {
                       gte: checkIn,
-                      lte: checkOut,
-                    },
-                  },
-                ],
-              },
+                      lte: checkOut
+                    }
+                  }
+                ]
+              }
             },
             maxGuests: {
-              gte: guests,
+              gte: guests
             }
+          }
+        }
+      },
+      include: {
+        roomTypes: {
+          orderBy: {
+            price: 'asc'
           },
-        },
-        roomCount: {
-          gte: rooms,
-        },
+          select: {
+            price: true,
+            _count: {
+              select: {
+                rooms: {
+                  where: {
+                    isActive: true,
+                    status: 'AVAILABLE'
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     });
-
-    return properties;
+    const result = properties.filter(property => {
+      return property.roomTypes.some(roomType => {
+        return roomType._count.rooms >= rooms;
+      });
+    });
+    return result;
   }
 }

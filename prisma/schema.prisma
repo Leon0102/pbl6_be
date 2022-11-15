@@ -89,6 +89,7 @@ model RoomType {
   propertyId  String      @map("property_id")
   property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   roomCount   Int      @map("room_count")
+  bedType       String     @map("bed_type")
   rooms       Room[]
   photos      String[]
   description String
