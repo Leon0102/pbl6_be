@@ -1,7 +1,12 @@
 import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Property } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
@@ -48,9 +53,9 @@ export class PropertiesService {
     }
   }
 
-  async findOne(id: string): Promise<Property> {
+  async findOne(id: string): Promise<any> {
     try {
-      const prop = await this.properties.findFirst({
+      const prop = await this.properties.findFirstOrThrow({
         where: {
           id,
           isDeleted: false,
@@ -58,10 +63,10 @@ export class PropertiesService {
         include: {
           ward: {
             select: {
-              fullName: true,
+              name: true,
               district: {
                 select: {
-                  fullName: true,
+                  name: true,
                   province: {
                     select: {
                       name: true,
@@ -92,7 +97,12 @@ export class PropertiesService {
       });
       return prop;
     } catch (error) {
-      console.log(error);
+      throw new HttpException(
+        {
+          message: 'Property not found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
   }
 
@@ -102,22 +112,22 @@ export class PropertiesService {
     files: Express.Multer.File[],
   ): Promise<boolean> {
     property.images = await Promise.all(
-      property.images.map(async (image) => {
-        if (files.find((file) => file.originalname === image)) {
+      property.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find((file) => file.originalname === image),
+            files.find(file => file.originalname === image),
           );
         }
       }),
     );
 
     property.roomTypes = await Promise.all(
-      property.roomTypes.map(async (roomType) => {
+      property.roomTypes.map(async roomType => {
         roomType.images = await Promise.all(
-          roomType.images.map(async (image) => {
-            if (files.find((file) => file.originalname === image)) {
+          roomType.images.map(async image => {
+            if (files.find(file => file.originalname === image)) {
               return await this.supabaseService.uploadFile(
-                files.find((file) => file.originalname === image),
+                files.find(file => file.originalname === image),
               );
             }
           }),
@@ -204,7 +214,6 @@ export class PropertiesService {
     property: UpdatePropertyDto,
     files: Express.Multer.File[],
   ) {
-
     if (!(await this.checkPropertyOwner(userId, id))) {
       throw new NotFoundException('Property not found');
     }
@@ -215,15 +224,15 @@ export class PropertiesService {
       },
     });
 
-    currProperty.photos.forEach(async (image) => {
+    currProperty.photos.forEach(async image => {
       await this.supabaseService.deleteFile(image);
     });
 
     property.images = await Promise.all(
-      property.images.map(async (image) => {
-        if (files.find((file) => file.originalname === image)) {
+      property.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find((file) => file.originalname === image),
+            files.find(file => file.originalname === image),
           );
         }
       }),
@@ -272,10 +281,7 @@ export class PropertiesService {
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
-  async search(
-    search: SearchPropertyDto,
-  ) {
-
+  async search(search: SearchPropertyDto) {
     const { location, checkIn, checkOut, rooms, guests, page } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
@@ -325,15 +331,32 @@ export class PropertiesService {
             },
             maxGuests: {
               gte: guests,
-            }
+            },
           },
         },
-        roomCount: {
-          gte: rooms,
+      },
+      include: {
+        roomTypes: {
+          select: {
+            _count: {
+              select: {
+                rooms: {
+                  where: {
+                    isActive: true,
+                    status: 'AVAILABLE',
+                  },
+                },
+              },
+            },
+          },
         },
-      }
+      },
     });
-
-    return properties;
+    const result = properties.filter(property => {
+      return property.roomTypes.some(roomType => {
+        return roomType._count.rooms >= rooms;
+      });
+    });
+    return result;
   }
 }

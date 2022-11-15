@@ -1,6 +1,10 @@
 import { db } from '@common/utils/dbClient';
 import { RoomsService } from '@modules/rooms/rooms.service';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto';
 
@@ -12,7 +16,7 @@ export class RoomTypesService {
     private readonly supabaseService: SupabaseService,
   ) {}
   createMany(propertyId: string, roomTypes: CreateRoomTypeDto[]) {
-    roomTypes.forEach(async (roomType) => {
+    roomTypes.forEach(async roomType => {
       await this.roomTypes.create({
         data: {
           name: roomType.name,
@@ -20,6 +24,7 @@ export class RoomTypesService {
           price: roomType.price,
           roomCount: roomType.roomCount,
           maxGuests: roomType.maxGuests,
+          bedType: roomType.bedType,
           size: {
             ...roomType.size,
           },
@@ -41,47 +46,13 @@ export class RoomTypesService {
       });
     });
   }
-  async create(
+
+  async createRoomType(
     userId: string,
     propertyId: string,
     roomType: CreateRoomTypeDto,
+    files: Express.Multer.File[],
   ) {
-    // check if property belongs to user
-    const propertyBelongsToUser = await db.property.findFirst({
-      where: {
-        id: propertyId,
-        userId,
-      },
-    });
-
-    if (!propertyBelongsToUser) {
-      throw new NotFoundException('Property not found');
-    }
-
-    await db.roomType.create({
-      data: {
-        name: roomType.name,
-        description: roomType.description,
-        price: roomType.price,
-        roomCount: roomType.roomCount,
-        maxGuests: roomType.maxGuests,
-        size: {
-          ...roomType.size,
-        },
-        facilities: {
-          ...roomType.facilities,
-        },
-        propertyId,
-        rooms: {
-          createMany: {
-            data: Array.from({ length: roomType.roomCount }).map(() => ({})),
-          },
-        },
-      },
-    });
-  }
-
-  async createRoomType(userId: string, propertyId: string, roomType: CreateRoomTypeDto, files: Express.Multer.File[]) {
     // check if property belongs to user
     const propertyBelongsToUser = await db.property.findFirst({
       where: {
@@ -92,10 +63,10 @@ export class RoomTypesService {
 
     // upload images to cloudinary
     const images = await Promise.all(
-      roomType.images.map(async (image) => {
-        if (files.find((file) => file.originalname === image)) {
+      roomType.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find((file) => file.originalname === image),
+            files.find(file => file.originalname === image),
           );
         }
       }),
@@ -111,6 +82,7 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
+        bedType: roomType.bedType,
         size: {
           ...roomType.size,
         },
@@ -132,7 +104,12 @@ export class RoomTypesService {
     };
   }
 
-  async update(userId: string, id: string, roomType: UpdateRoomTypeDto, files: Express.Multer.File[]) {
+  async update(
+    userId: string,
+    id: string,
+    roomType: UpdateRoomTypeDto,
+    files: Express.Multer.File[],
+  ) {
     // check if room type belongs to user
     const roomTypeBelongsToUser = await this.roomTypes.findFirstOrThrow({
       where: {
@@ -148,18 +125,17 @@ export class RoomTypesService {
     }
 
     if (files.length > 0) {
-
       // delete old images
-      roomTypeBelongsToUser.photos.forEach(async (image) => {
+      roomTypeBelongsToUser.photos.forEach(async image => {
         await this.supabaseService.deleteFile(image);
       });
 
       // upload images to cloudinary
       const images = await Promise.all(
-        roomType.images.map(async (image) => {
-          if (files.find((file) => file.originalname === image)) {
+        roomType.images.map(async image => {
+          if (files.find(file => file.originalname === image)) {
             return await this.supabaseService.uploadFile(
-              files.find((file) => file.originalname === image),
+              files.find(file => file.originalname === image),
             );
           }
         }),
@@ -181,7 +157,7 @@ export class RoomTypesService {
         },
         facilities: {
           ...roomType.facilities,
-        }
+        },
       },
     });
 
@@ -235,5 +211,4 @@ export class RoomTypesService {
 
     return roomType;
   }
-
 }
