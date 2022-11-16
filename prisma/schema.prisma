@@ -78,7 +78,7 @@ model Property {
   categoryId    String     @map("category_id")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
-
+  reviews       Review[]
   @@map("properties")
 }
 
@@ -92,7 +92,7 @@ model RoomType {
   bedType       String     @map("bed_type")
   rooms       Room[]
   photos      String[]
-  description String
+  description String?
   facilities  Json?
   maxGuests   Int      @map("max_guests")
   size        Json?
@@ -119,11 +119,10 @@ model Room {
   status       RoomStatus     @default(AVAILABLE)
   roomType     RoomType       @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   roomTypeId   String            @map("room_type_id")
-  isActive     Boolean        @default(true) @map("is_active")
+  isDeleted    Boolean        @default(false) @map("is_deleted")
   roomReserved RoomReserved[]
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
-
   @@map("rooms")
 }
 
@@ -146,7 +145,7 @@ model Reservation {
   roomReserved   RoomReserved[]
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
-
+  review         Review?
   @@map("reservations")
 }
 
@@ -160,6 +159,20 @@ model RoomReserved {
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
   @@map("room_reserved")
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  content     String
+  rating      Float     @default(0)
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservationId String  @unique @map("reservation_id")
+  proeperty   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String    @map("property_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  @@map("reviews")
 }
 
 model AdministrativeRegion {
