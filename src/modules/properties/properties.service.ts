@@ -10,7 +10,7 @@ export class PropertiesService {
   private readonly properties = db.property;
   constructor(
     private readonly roomTypesService: RoomTypesService,
-    private readonly supabaseService: SupabaseService,
+    private readonly supabaseService: SupabaseService
   ) {}
   async findByPage(page: number) {
     try {
@@ -53,7 +53,7 @@ export class PropertiesService {
       const prop = await this.properties.findFirst({
         where: {
           id,
-          isDeleted: false,
+          isDeleted: false
         },
         include: {
           ward: {
@@ -64,16 +64,16 @@ export class PropertiesService {
                   fullName: true,
                   province: {
                     select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
+                      name: true
+                    }
+                  }
+                }
+              }
+            }
           },
           roomTypes: {
             where: {
-              isDeleted: false,
+              isDeleted: false
             },
             include: {
               _count: {
@@ -99,7 +99,7 @@ export class PropertiesService {
   async create(
     userId: string,
     property: CreatePropertyDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ): Promise<boolean> {
     property.images = await Promise.all(
       property.images.map(async (image) => {
@@ -108,7 +108,7 @@ export class PropertiesService {
             files.find((file) => file.originalname === image),
           );
         }
-      }),
+      })
     );
 
     property.roomTypes = await Promise.all(
@@ -120,10 +120,10 @@ export class PropertiesService {
                 files.find((file) => file.originalname === image),
               );
             }
-          }),
+          })
         );
         return roomType;
-      }),
+      })
     );
 
     await db.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -135,34 +135,34 @@ export class PropertiesService {
           longitude: property.longitude,
           streetAddress: property.streetAddress,
           facilities: {
-            ...property.facilities,
+            ...property.facilities
           },
           roomCount: property.roomCount,
           user: {
             connect: {
-              id: userId,
-            },
+              id: userId
+            }
           },
           ward: {
             connect: {
-              code: property.wardCode,
-            },
+              code: property.wardCode
+            }
           },
           photos: property.images,
           category: {
             connect: {
-              id: Categories[property.categoryId],
-            },
-          },
-        },
+              id: Categories[property.categoryId]
+            }
+          }
+        }
       });
       try {
         this.roomTypesService.createMany(prop.id, property.roomTypes);
       } catch (error) {
         await db.property.delete({
           where: {
-            id: prop.id,
-          },
+            id: prop.id
+          }
         });
         return false;
       }
@@ -174,8 +174,8 @@ export class PropertiesService {
     const prop = await this.properties.findFirst({
       where: {
         id: propertyId,
-        userId,
-      },
+        userId
+      }
     });
     return !!prop;
   }
@@ -186,15 +186,15 @@ export class PropertiesService {
     }
     await this.properties.update({
       where: {
-        id,
+        id
       },
       data: {
-        isDeleted: true,
-      },
+        isDeleted: true
+      }
     });
 
     return {
-      message: 'Delete property successfully',
+      message: 'Delete property successfully'
     };
   }
 
@@ -202,7 +202,7 @@ export class PropertiesService {
     userId: string,
     id: string,
     property: UpdatePropertyDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ) {
 
     if (!(await this.checkPropertyOwner(userId, id))) {
@@ -211,8 +211,8 @@ export class PropertiesService {
 
     const currProperty = await this.properties.findFirst({
       where: {
-        id,
-      },
+        id
+      }
     });
 
     currProperty.photos.forEach(async (image) => {
@@ -226,12 +226,12 @@ export class PropertiesService {
             files.find((file) => file.originalname === image),
           );
         }
-      }),
+      })
     );
 
     await this.properties.update({
       where: {
-        id,
+        id
       },
       data: {
         name: property.name,
@@ -240,33 +240,33 @@ export class PropertiesService {
         longitude: property.longitude,
         streetAddress: property.streetAddress,
         facilities: {
-          ...property.facilities,
+          ...property.facilities
         },
         roomCount: property.roomCount,
         ward: {
           connect: {
-            code: property.wardCode,
-          },
+            code: property.wardCode
+          }
         },
         photos: property.images,
         category: {
           connect: {
-            id: Categories[property.categoryId],
-          },
-        },
-      },
+            id: Categories[property.categoryId]
+          }
+        }
+      }
     });
 
     return {
-      message: 'Update property successfully',
+      message: 'Update property successfully'
     };
   }
 
   getMyProperties(userId: string) {
     return this.properties.findMany({
       where: {
-        userId,
-      },
+        userId
+      }
     });
   }
 
@@ -315,25 +315,25 @@ export class PropertiesService {
         OR: [
           {
             ward: {
-              code: location,
-            },
+              code: location
+            }
           },
           {
             ward: {
               district: {
-                code: location,
-              },
-            },
+                code: location
+              }
+            }
           },
           {
             ward: {
               district: {
                 province: {
-                  code: location,
-                },
-              },
-            },
-          },
+                  code: location
+                }
+              }
+            }
+          }
         ],
         roomTypes: {
           some: {
