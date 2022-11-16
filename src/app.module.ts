@@ -20,9 +20,13 @@ import { SharedModule } from './shared/shared.module';
     SharedModule,
     AuthModule,
     UsersModule,
-    PropertiesModule, RoomsModule, CategoriesModule, RoomTypesModule,
+    PropertiesModule,
+    RoomsModule,
+    CategoriesModule,
+    RoomTypesModule,
     PrismaModule,
-    ReservationsModule],
+    ReservationsModule,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

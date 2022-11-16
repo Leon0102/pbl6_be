@@ -80,6 +80,7 @@ model RoomType {
   price       Float
   propertyId  String   @map("property_id")
   roomCount   Int      @map("room_count")
+  rooms       Room[]
   photos      String[]
   description String?
   facilities  Json?
@@ -90,7 +91,6 @@ model RoomType {
   updatedAt   DateTime @updatedAt @map("updated_at")
   bed_type    String
   property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  rooms       Room[]
 
   @@map("room_types")
 }

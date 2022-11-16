@@ -14,9 +14,14 @@ import {
   UseGuards,
   UseInterceptors
 } from '@nestjs/common';
-import { ParseIntPipe } from '@nestjs/common/pipes';
+import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiAcceptedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiAcceptedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags
+} from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
 import { ArrayFilesLimits } from '../../decorators';
@@ -28,31 +33,15 @@ import { PropertiesService } from './properties.service';
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(RoleGuard([RoleType.HOST, RoleType.GUEST]))
-  @ApiAcceptedResponse({
-    type: String,
-    description: 'Find all properties by page',
-  })
-  @ApiOperation({ summary: 'Find all properties by page' })
-  async findByPage(
-    @GetUser() user: User,
-    @Query('page', ParseIntPipe) page: number) {
-    return this.propertiesService.findByPage(page);
-  }
-
   @Get('my-properties')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.HOST]))
   @ApiOkResponse({
     type: String,
-    description: 'Find all properties by host',
+    description: 'Find all properties by host'
   })
   @ApiOperation({ summary: 'Find all properties by host' })
-  async getMyProperties(
-    @GetUser() user: User,
-  ) {
+  async getMyProperties(@GetUser() user: User) {
     return this.propertiesService.getMyProperties(user.id);
   }
 
@@ -61,11 +50,9 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Search properties' })
   @ApiAcceptedResponse({
     type: String,
-    description: 'Search properties by page',
+    description: 'Search properties by page'
   })
-  async search(
-    @Query() query: SearchPropertyDto,
-  ) {
+  async search(@Query() query: SearchPropertyDto) {
     return this.propertiesService.search(query);
   }
 
@@ -87,7 +74,7 @@ export class PropertiesController {
   async create(
     @GetUser() user: User,
     @Body() createPropertyDto: CreatePropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[]
   ) {
     return this.propertiesService.create(user.id, createPropertyDto, files);
   }
@@ -96,9 +83,7 @@ export class PropertiesController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a property' })
   @HttpCode(HttpStatus.ACCEPTED)
-  async remove(
-    @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: string) {
+  async remove(@GetUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.propertiesService.remove(user.id, id);
   }
 
@@ -109,9 +94,9 @@ export class PropertiesController {
   @UseInterceptors(FilesInterceptor('files'))
   async update(
     @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[]
   ) {
     return this.propertiesService.update(user.id, id, updatePropertyDto, files);
   }
