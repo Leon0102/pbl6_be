@@ -51,6 +51,7 @@ export class RoomTypesService {
     userId: string,
     propertyId: string,
     roomType: CreateRoomTypeDto,
+    files: Express.Multer.File[],
   ) {
     // check if property belongs to user
     const propertyBelongsToUser = await db.property.findFirst({
