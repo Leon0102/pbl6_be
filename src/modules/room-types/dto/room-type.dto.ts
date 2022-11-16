@@ -32,6 +32,12 @@ export class RoomTypeDto {
 
   @ApiProperty()
 
+  @IsString()
+  @IsNotEmpty()
+  bedType: string;
+
+  @ApiProperty()
+
   @IsObject()
   @IsOptional()
   facilities: Facility;

@@ -19,6 +19,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiAcceptedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
+import { ArrayFilesLimits } from '../../decorators';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { PropertiesService } from './properties.service';
 
@@ -74,7 +75,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Find One Properties' })
   async findById(
 
-    @Param('id', ParseIntPipe) id: string) {
+    @Param('id') id: string) {
     return this.propertiesService.findOne(id);
   }
 
@@ -82,7 +83,7 @@ export class PropertiesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a property' })
-  @UseInterceptors(FilesInterceptor('files'))
+  @ArrayFilesLimits(30)
   async create(
     @GetUser() user: User,
     @Body() createPropertyDto: CreatePropertyDto,

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType } from '@prisma/client';
 import { db } from '../../common/utils/dbClient';
 import { StatusReservation } from '../../constants';
@@ -17,7 +18,7 @@ export class ReservationsService {
         const room = await db.room.findFirst({
             where: {
                 status: 'AVAILABLE',
-                isActive: true,
+                is_deleted: false,
                 roomTypeId: dto.roomTypeId,
                 updatedAt: {
                     lte: new Date(dto.checkIn),
@@ -113,7 +114,7 @@ export class ReservationsService {
         })
     }
 
-    async cancelReservation(userId: string, id: string) {
+    async cancelReservation(userId?: string, id?: string) {
         const reservation = await this.reservation.findUnique({
             where: {
                 id,
@@ -189,5 +190,24 @@ export class ReservationsService {
         return {
             message: 'Confirm reservation success',
         }
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_NOON)
+    async checkReservation() {
+        const reservations = await this.reservation.findMany({
+            where: {
+                status: StatusReservation.PENDING,
+                checkIn: {
+                    lte: new Date(),
+                }
+            },
+            select: {
+                id: true,
+            }
+        });
+
+        reservations.forEach(async (reservation) => {
+            await this.cancelReservation(reservation.id);
+        });
     }
 }

@@ -6,7 +6,7 @@ export function FileLimits() {
         UseInterceptors(
             FileInterceptor('file', {
                 limits: {
-                    fileSize: 1024 * 1024 * 10,
+                    fileSize: 1024 * 1024 * 5,
                     files: 1
                 },
                 fileFilter: (req, file, cb) => {

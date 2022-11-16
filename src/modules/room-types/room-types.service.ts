@@ -20,6 +20,7 @@ export class RoomTypesService {
           price: roomType.price,
           roomCount: roomType.roomCount,
           maxGuests: roomType.maxGuests,
+          bed_type: roomType.bedType,
           size: {
             ...roomType.size,
           },
@@ -65,6 +66,7 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
+        bed_type: roomType.bedType,
         size: {
           ...roomType.size,
         },
@@ -111,6 +113,7 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
+        bed_type: roomType.bedType,
         size: {
           ...roomType.size,
         },

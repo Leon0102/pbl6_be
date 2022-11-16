@@ -27,7 +27,7 @@ export class PropertiesService {
               isDeleted: false,
               rooms: {
                 some: {
-                  isActive: true,
+                  is_deleted: false,
                   status: 'AVAILABLE',
                 },
               },
@@ -80,7 +80,7 @@ export class PropertiesService {
                 select: {
                   rooms: {
                     where: {
-                      isActive: true,
+                      is_deleted: false,
                       status: 'AVAILABLE',
                     },
                   },
@@ -281,6 +281,36 @@ export class PropertiesService {
     const properties = await this.properties.findMany({
       take: page * 10,
       skip: (page - 1) * 10,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        streetAddress: true,
+        facilities: true,
+        roomCount: true,
+        photos: true,
+        ward: true,
+        // roomTypes: {
+        //   select: {
+        //     rooms: {
+        //       select: {
+        //         id: true,
+        //         status: true,
+        //         roomReserved: {
+        //           select: {
+        //             reservation: {
+        //               select: {
+        //                 checkIn: true,
+        //                 checkOut: true,
+        //               },
+        //             },
+        //           },
+        //         },
+        //       },
+        //     }
+        //   }
+        // }
+      },
       where: {
         OR: [
           {
@@ -311,7 +341,7 @@ export class PropertiesService {
               some: {
                 AND: [
                   {
-                    isActive: true,
+                    is_deleted: false,
                     status: 'AVAILABLE',
                   },
                   {
@@ -319,7 +349,7 @@ export class PropertiesService {
                       gte: checkIn,
                       lte: checkOut,
                     },
-                  },
+                  }
                 ],
               },
             },
@@ -334,6 +364,7 @@ export class PropertiesService {
       }
     });
 
+    // check if all rooms in property are not available and show room count available
     return properties;
   }
 }
