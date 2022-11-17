@@ -5,46 +5,41 @@ import { Prisma, RoomStatus } from '@prisma/client';
 
 @Injectable()
 export class RoomsService {
-
   private readonly room = db.room;
   async createMany(
     typeInfo: {
       id: number;
       roomCount: number;
     },
-    tx: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient
   ) {
     console.log(typeInfo);
   }
 
-  async deleteMany(
-    listIds: string[],
-    tx: Prisma.TransactionClient,
-  ) {
+  async deleteMany(listIds: string[], tx: Prisma.TransactionClient) {
     await tx.room.deleteMany({
       where: {
         id: {
-          in: listIds,
-        },
-      },
+          in: listIds
+        }
+      }
     });
   }
 
   async delete(id: string) {
     await db.room.delete({
       where: {
-        id,
-      },
+        id
+      }
     });
   }
 
   async getDetails(id: string) {
     return await db.room.findUnique({
       where: {
-        id,
-      },
+        id
+      }
     });
-
   }
 
   async updateStatusRoom(id: string, status: RoomStatus) {
@@ -54,9 +49,9 @@ export class RoomsService {
       },
       data: {
         status,
-        is_deleted: false,
+        isDeleted: false
       }
-    })
+    });
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_NOON)
@@ -64,7 +59,7 @@ export class RoomsService {
     const rooms = await this.room.findMany({
       where: {
         status: 'UNAVAILABLE',
-        is_deleted: false,
+        isDeleted: false
       },
       select: {
         id: true,
@@ -72,12 +67,12 @@ export class RoomsService {
           select: {
             reservation: {
               select: {
-                checkOut: true,
+                checkOut: true
               }
             }
           }
         }
-      },
+      }
     });
     const today = new Date();
     for (const room of rooms) {

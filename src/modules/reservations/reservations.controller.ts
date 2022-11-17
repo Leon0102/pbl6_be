@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards
+} from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from '../../guards/roles.guard';
@@ -10,109 +21,99 @@ import { ReservationsService } from './reservations.service';
 @Controller('reservations')
 @ApiTags('reservations')
 export class ReservationsController {
-    constructor(
-        private readonly reservationsService: ReservationsService,
+  constructor(
+    private readonly reservationsService: ReservationsService,
 
-        private readonly vnPay: VnPayService
-    ) {}
+    private readonly vnPay: VnPayService
+  ) {}
 
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiOperation({ summary: 'Get All Reservations' })
+  @ApiOkResponse({
+    description: 'Get All Reservations'
+  })
+  @ApiOperation({ summary: 'Get All Reservations' })
+  async findAll() {
+    return this.reservationsService.findAll();
+  }
 
-    @Get()
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(RoleGuard([RoleType.ADMIN]))
-    @ApiOperation({ summary: 'Get All Reservations' })
-    @ApiOkResponse({
-        description: 'Get All Reservations',
-    })
-    @ApiOperation({ summary: 'Get All Reservations' })
-    async findAll() {
-        return this.reservationsService.findAll();
+  @Get('my-reservations')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOkResponse({
+    description: 'Get All Reservations Of Guest'
+  })
+  @ApiOperation({ summary: 'Get All Reservations Of Guest' })
+  async getUserReservation(@GetUser() user: User) {
+    return this.reservationsService.getUserReservation(user.id);
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOperation({ summary: 'Create Reservation' })
+  @ApiOkResponse({
+    description: 'Create Reservation'
+  })
+  @ApiOperation({ summary: 'Create Reservation' })
+  async create(@GetUser() user: User, @Body() dto: CreateReservationDto) {
+    return this.reservationsService.createReservation(user.id, dto);
+  }
+
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOperation({ summary: 'Cancel Reservation' })
+  @ApiOkResponse({
+    description: 'Cancel Reservation'
+  })
+  async cancelReservation(@GetUser() user: User, @Param('id') id: string) {
+    return this.reservationsService.cancelReservation(user.id, id);
+  }
+
+  // @Patch(':id/confirm')
+  // @HttpCode(HttpStatus.ACCEPTED)
+  // @UseGuards(RoleGuard([RoleType.HOST]))
+  // @ApiOkResponse({
+  //     description: 'Confirm Reservation',
+  // })
+  // @ApiOperation({ summary: 'Confirm Reservation' })
+  // async confirmReservation(
+  //     @GetUser() user: User,
+  //     @Param('id') id: string,
+  // ) {
+  //     return this.reservationsService.confirmReservation(user.id, id);
+  // }
+
+  @Post('create_payment_url')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOkResponse({
+    description: 'Get link to payment'
+  })
+  @ApiOperation({ summary: 'Get link to payment' })
+  createPaymentUrl(@Body() dto: any) {
+    console.log(dto);
+    return this.vnPay.createPaymentUrl(dto);
+  }
+
+  @Get('vnpay_return')
+  async vnpayReturn(@Req() req: any) {
+    console.log(req.query);
+    const result = this.vnPay.vnPayReturn(req);
+    if (result.message === 'success') {
+      await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      return {
+        message: 'Reservation confirmed'
+      };
     }
+  }
 
-    @Get('my-reservations')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(RoleGuard([RoleType.GUEST]))
-    @ApiOkResponse({
-        description: 'Get All Reservations Of Guest',
-    })
-    @ApiOperation({ summary: 'Get All Reservations Of Guest' })
-    async getUserReservation(
-        @GetUser() user: User,
-    ) {
-        return this.reservationsService.getUserReservation(user.id);
-    }
-
-
-    @Post()
-    @HttpCode(HttpStatus.CREATED)
-    @UseGuards(RoleGuard([RoleType.GUEST]))
-    @ApiOperation({ summary: 'Create Reservation' })
-    @ApiOkResponse({
-        description: 'Create Reservation',
-    })
-    @ApiOperation({ summary: 'Create Reservation' })
-    async create(
-        @GetUser() user: User,
-        @Body() dto: CreateReservationDto,
-    ) {
-        return this.reservationsService.createReservation(user.id, dto);
-    }
-
-    @Patch(':id/cancel')
-    @HttpCode(HttpStatus.ACCEPTED)
-    @UseGuards(RoleGuard([RoleType.GUEST]))
-    @ApiOperation({ summary: 'Cancel Reservation' })
-    @ApiOkResponse({
-        description: 'Cancel Reservation',
-    })
-    async cancelReservation(
-        @GetUser() user: User,
-        @Param('id') id: string,
-    ) {
-        return this.reservationsService.cancelReservation(user.id, id);
-    }
-
-    // @Patch(':id/confirm')
-    // @HttpCode(HttpStatus.ACCEPTED)
-    // @UseGuards(RoleGuard([RoleType.HOST]))
-    // @ApiOkResponse({
-    //     description: 'Confirm Reservation',
-    // })
-    // @ApiOperation({ summary: 'Confirm Reservation' })
-    // async confirmReservation(
-    //     @GetUser() user: User,
-    //     @Param('id') id: string,
-    // ) {
-    //     return this.reservationsService.confirmReservation(user.id, id);
-    // }
-
-    @Post('create_payment_url')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(RoleGuard([RoleType.GUEST]))
-    @ApiOkResponse({
-        description: 'Get link to payment',
-    })
-    @ApiOperation({ summary: 'Get link to payment' })
-    createPaymentUrl(@Body() dto: any) {
-        console.log(dto);
-        return this.vnPay.createPaymentUrl(dto);
-    }
-
-    @Get('vnpay_return')
-    async vnpayReturn(@Req() req: any) {
-        console.log(req.query);
-        const result = this.vnPay.vnPayReturn(req);
-        if (result.message === 'success') {
-            await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
-            return {
-                message: 'Reservation confirmed'
-            }
-        }
-    }
-
-    @Get('vnpay_ipn')
-    vnpayIpn(@Req() req: any) {
-        console.log(req.query);
-        return this.vnPay.vnPayIPN(req);
-    }
+  @Get('vnpay_ipn')
+  vnpayIpn(@Req() req: any) {
+    console.log(req.query);
+    return this.vnPay.vnPayIPN(req);
+  }
 }
