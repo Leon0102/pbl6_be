@@ -13,7 +13,7 @@ export class RoomTypesService {
   private readonly roomTypes = db.roomType;
   constructor(
     private readonly roomsService: RoomsService,
-    private readonly supabaseService: SupabaseService,
+    private readonly supabaseService: SupabaseService
   ) {}
   createMany(propertyId: string, roomTypes: CreateRoomTypeDto[]) {
     roomTypes.forEach(async roomType => {
@@ -24,25 +24,25 @@ export class RoomTypesService {
           price: roomType.price,
           roomCount: roomType.roomCount,
           maxGuests: roomType.maxGuests,
-          bed_type: roomType.bedType,
+          bedType: roomType.bedType,
           size: {
-            ...roomType.size,
+            ...roomType.size
           },
           facilities: {
-            ...roomType.facilities,
+            ...roomType.facilities
           },
           rooms: {
             createMany: {
-              data: Array.from({ length: roomType.roomCount }).map(() => ({})),
-            },
+              data: Array.from({ length: roomType.roomCount }).map(() => ({}))
+            }
           },
           photos: roomType.images,
           property: {
             connect: {
-              id: propertyId,
-            },
-          },
-        },
+              id: propertyId
+            }
+          }
+        }
       });
     });
   }
@@ -51,14 +51,14 @@ export class RoomTypesService {
     userId: string,
     propertyId: string,
     roomType: CreateRoomTypeDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ) {
     // check if property belongs to user
     const propertyBelongsToUser = await db.property.findFirst({
       where: {
         id: propertyId,
-        userId,
-      },
+        userId
+      }
     });
 
     if (!propertyBelongsToUser) {
@@ -72,30 +72,35 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
-        bed_type: roomType.bedType,
+        bedType: roomType.bedType,
         size: {
-          ...roomType.size,
+          ...roomType.size
         },
         facilities: {
-          ...roomType.facilities,
+          ...roomType.facilities
         },
         propertyId,
         rooms: {
           createMany: {
-            data: Array.from({ length: roomType.roomCount }).map(() => ({})),
-          },
-        },
-      },
+            data: Array.from({ length: roomType.roomCount }).map(() => ({}))
+          }
+        }
+      }
     });
   }
 
-  async createRoomType(userId: string, propertyId: string, roomType: CreateRoomTypeDto, files: Express.Multer.File[]) {
+  async createRoomType(
+    userId: string,
+    propertyId: string,
+    roomType: CreateRoomTypeDto,
+    files: Express.Multer.File[]
+  ) {
     // check if property belongs to user
     const propertyBelongsToUser = await db.property.findFirst({
       where: {
         id: propertyId,
-        userId,
-      },
+        userId
+      }
     });
 
     // upload images to cloudinary
@@ -103,10 +108,10 @@ export class RoomTypesService {
       roomType.images.map(async image => {
         if (files.find(file => file.originalname === image)) {
           return await this.supabaseService.uploadFile(
-            files.find(file => file.originalname === image),
+            files.find(file => file.originalname === image)
           );
         }
-      }),
+      })
     );
     if (!propertyBelongsToUser) {
       throw new NotFoundException('Property not found');
@@ -119,25 +124,25 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
-        bed_type: roomType.bedType,
+        bedType: roomType.bedType,
         size: {
-          ...roomType.size,
+          ...roomType.size
         },
         facilities: {
-          ...roomType.facilities,
+          ...roomType.facilities
         },
         photos: images,
         propertyId,
         rooms: {
           createMany: {
-            data: Array.from({ length: roomType.roomCount }).map(() => ({})),
-          },
-        },
-      },
+            data: Array.from({ length: roomType.roomCount }).map(() => ({}))
+          }
+        }
+      }
     });
 
     return {
-      message: 'Room type created successfully',
+      message: 'Room type created successfully'
     };
   }
 
@@ -145,16 +150,16 @@ export class RoomTypesService {
     userId: string,
     id: string,
     roomType: UpdateRoomTypeDto,
-    files: Express.Multer.File[],
+    files: Express.Multer.File[]
   ) {
     // check if room type belongs to user
     const roomTypeBelongsToUser = await this.roomTypes.findFirstOrThrow({
       where: {
         id,
         property: {
-          userId,
-        },
-      },
+          userId
+        }
+      }
     });
 
     if (!roomTypeBelongsToUser) {
@@ -172,16 +177,16 @@ export class RoomTypesService {
         roomType.images.map(async image => {
           if (files.find(file => file.originalname === image)) {
             return await this.supabaseService.uploadFile(
-              files.find(file => file.originalname === image),
+              files.find(file => file.originalname === image)
             );
           }
-        }),
+        })
       );
     }
 
     await this.roomTypes.update({
       where: {
-        id,
+        id
       },
       data: {
         name: roomType.name,
@@ -190,16 +195,16 @@ export class RoomTypesService {
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
         size: {
-          ...roomType.size,
+          ...roomType.size
         },
         facilities: {
-          ...roomType.facilities,
-        },
-      },
+          ...roomType.facilities
+        }
+      }
     });
 
     return {
-      message: 'Room type updated successfully',
+      message: 'Room type updated successfully'
     };
   }
 
@@ -209,9 +214,9 @@ export class RoomTypesService {
       where: {
         id,
         property: {
-          userId,
-        },
-      },
+          userId
+        }
+      }
     });
 
     if (!roomTypeBelongsToUser) {
@@ -220,15 +225,15 @@ export class RoomTypesService {
 
     await this.roomTypes.update({
       where: {
-        id,
+        id
       },
       data: {
-        isDeleted: true,
-      },
+        isDeleted: true
+      }
     });
 
     return {
-      message: 'Room type deleted successfully',
+      message: 'Room type deleted successfully'
     };
   }
 
@@ -237,9 +242,9 @@ export class RoomTypesService {
       where: {
         id,
         property: {
-          userId,
-        },
-      },
+          userId
+        }
+      }
     });
 
     if (!roomType) {
