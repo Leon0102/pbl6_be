@@ -1,0 +1,251 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions", "filteredRelationCount"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id    String   @id
+  name  RoleType @unique
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id                    String        @id @default(uuid())
+  email                 String        @unique
+  name                  String?
+  password              String
+  phone                 String?
+  isVerified            Boolean       @default(false) @map("is_verified")
+  isDeleted             Boolean       @default(false) @map("is_deleted")
+  point                 Int           @default(0)
+  avatar                String?
+  roleId                String        @default("guest") @map("role_id")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  role                  Role          @relation(fields: [roleId], references: [id])
+  properties            Property[]
+  reservations          Reservation[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String     @id
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  properties  Property[]
+
+  @@map("categories")
+}
+
+model Property {
+  id            String     @id @default(uuid())
+  name          String
+  description   String?
+  latitude      Float
+  longitude     Float
+  wardCode      String     @map("ward_code") @db.VarChar(20)
+  streetAddress String     @map("street_address")
+  facilities    Json?
+  roomCount     Int        @map("room_count")
+  photos        String[]
+  isDeleted     Boolean    @default(false) @map("is_deleted")
+  userId        String     @map("user_id")
+  categoryId    String     @map("category_id")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  category      Category   @relation(fields: [categoryId], references: [id])
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ward          Ward       @relation(fields: [wardCode], references: [code])
+  reviews       Review[]
+  roomTypes     RoomType[]
+
+  @@map("properties")
+}
+
+model RoomType {
+  id          String   @id @default(uuid())
+  name        String
+  price       Float
+  propertyId  String   @map("property_id")
+  roomCount   Int      @map("room_count")
+  photos      String[]
+  description String?
+  facilities  Json?
+  maxGuests   Int      @map("max_guests")
+  size        Json?
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  bedType     String   @map("bed_type")
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rooms       Room[]
+
+  @@map("room_types")
+}
+
+model Room {
+  id           String         @id @default(uuid())
+  name         String?
+  status       RoomStatus     @default(AVAILABLE)
+  roomTypeId   String         @map("room_type_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  isDeleted    Boolean        @default(false) @map("is_deleted")
+  roomType     RoomType       @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  roomReserved RoomReserved[]
+
+  @@map("rooms")
+}
+
+model Reservation {
+  id             String            @id @default(uuid())
+  checkIn        DateTime          @map("check_in")
+  checkOut       DateTime          @map("check_out")
+  specialRequest String?           @map("special_request")
+  status         ReservationStatus
+  userId         String            @map("user_id")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review         Review?
+  roomReserved   RoomReserved[]
+
+  @@map("reservations")
+}
+
+model RoomReserved {
+  id            String      @id @default(uuid())
+  roomId        String      @map("room_id")
+  reservationId String      @map("reservation_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_reserved")
+}
+
+model Review {
+  id            String      @id @default(uuid())
+  content       String
+  rating        Float       @default(0)
+  reservationId String      @unique @map("reservation_id")
+  propertyId    String      @map("property_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  isDeleted     Boolean     @default(false) @map("is_deleted")
+  proeperty     Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model AdministrativeRegion {
+  id         Int        @id
+  name       String     @db.VarChar(255)
+  nameEn     String     @map("name_en") @db.VarChar(255)
+  codeName   String?    @map("code_name") @db.VarChar(255)
+  codeNameEn String?    @map("code_name_en") @db.VarChar(255)
+  provinces  Province[]
+
+  @@map("administrative_regions")
+}
+
+model AdministrativeUnit {
+  id          Int        @id
+  fullName    String?    @map("full_name") @db.VarChar(255)
+  fullNameEn  String?    @map("full_name_en") @db.VarChar(255)
+  shortName   String?    @map("short_name") @db.VarChar(255)
+  shortNameEn String?    @map("short_name_en") @db.VarChar(255)
+  codeName    String?    @map("code_name") @db.VarChar(255)
+  codeNameEn  String?    @map("code_name_en") @db.VarChar(255)
+  districts   District[]
+  provinces   Province[]
+  wards       Ward[]
+
+  @@map("administrative_units")
+}
+
+model Province {
+  code                   String               @id @db.VarChar(20)
+  name                   String               @db.VarChar(255)
+  nameEn                 String?              @map("name_en") @db.VarChar(255)
+  fullName               String               @map("full_name") @db.VarChar(255)
+  fullNameEn             String?              @map("full_name_en") @db.VarChar(255)
+  codeName               String?              @map("code_name") @db.VarChar(255)
+  administrativeUnitId   Int                  @map("administrative_unit_id")
+  administrativeRegionId Int                  @map("administrative_region_id")
+  administrativeRegion   AdministrativeRegion @relation(fields: [administrativeRegionId], references: [id])
+  administrativeUnit     AdministrativeUnit   @relation(fields: [administrativeUnitId], references: [id])
+  districts              District[]
+
+  @@map("provinces")
+}
+
+model District {
+  code                 String             @id @db.VarChar(20)
+  name                 String             @db.VarChar(255)
+  nameEn               String             @map("name_en") @db.VarChar(255)
+  fullName             String             @map("full_name") @db.VarChar(255)
+  fullNameEn           String?            @map("full_name_en") @db.VarChar(255)
+  codeName             String?            @map("code_name") @db.VarChar(255)
+  provinceCode         String             @map("province_code") @db.VarChar(20)
+  administrativeUnitId Int                @map("administrative_unit_id")
+  administrativeUnit   AdministrativeUnit @relation(fields: [administrativeUnitId], references: [id])
+  province             Province           @relation(fields: [provinceCode], references: [code])
+  wards                Ward[]
+
+  @@map("districts")
+}
+
+model Ward {
+  code                 String             @id @db.VarChar(20)
+  name                 String             @db.VarChar(255)
+  nameEn               String?            @map("name_en") @db.VarChar(255)
+  fullName             String?            @map("full_name") @db.VarChar(255)
+  fullNameEn           String?            @map("full_name_en") @db.VarChar(255)
+  codeName             String?            @map("code_name") @db.VarChar(255)
+  districtCode         String             @map("district_code") @db.VarChar(20)
+  administrativeUnitId Int                @map("administrative_unit_id")
+  administrativeUnit   AdministrativeUnit @relation(fields: [administrativeUnitId], references: [id])
+  district             District           @relation(fields: [districtCode], references: [code])
+  properties           Property[]
+
+  @@map("wards")
+}
+
+enum RoleType {
+  ADMIN
+  HOST
+  GUEST
+}
+
+enum RoomStatus {
+  AVAILABLE
+  UNAVAILABLE
+  RESERVED
+  OCCUPIED
+  CLEANING
+  MAINTENANCE
+  OTHER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  FAILED
+  COMPLETED
+}
