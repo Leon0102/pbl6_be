@@ -1,3 +1,3 @@
-import { Facility } from './Facility.interface';
+import { Facility } from './facility.interface';
 
 export { Facility };

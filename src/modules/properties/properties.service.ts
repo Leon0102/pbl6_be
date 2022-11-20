@@ -5,6 +5,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Property } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
+
 @Injectable()
 export class PropertiesService {
   private readonly properties = db.property;
@@ -285,27 +286,27 @@ export class PropertiesService {
         facilities: true,
         roomCount: true,
         photos: true,
-        ward: true
-        // roomTypes: {
-        //   select: {
-        //     rooms: {
-        //       select: {
-        //         id: true,
-        //         status: true,
-        //         roomReserved: {
-        //           select: {
-        //             reservation: {
-        //               select: {
-        //                 checkIn: true,
-        //                 checkOut: true,
-        //               },
-        //             },
-        //           },
-        //         },
-        //       },
-        //     }
-        //   }
-        // }
+        ward: true,
+        roomTypes: {
+          select: {
+            rooms: {
+              select: {
+                id: true,
+                status: true,
+                // roomReserved: {
+                //   select: {
+                //     reservation: {
+                //       select: {
+                //         checkIn: true,
+                //         checkOut: true,
+                //       },
+                //     },
+                //   },
+                // },
+              },
+            }
+          }
+        }
       },
       where: {
         OR: [

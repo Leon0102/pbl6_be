@@ -4,16 +4,20 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 
+import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Injectable()
 export class JwtRefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refreshtoken") {
-    constructor(private userService: UsersService) {
+    constructor(
+        private userService: UsersService,
+        private configService: ConfigService
+    ) {
         super({
             jwtFromRequest: ExtractJwt.fromBodyField('accessToken'),
             ignoreExpiration: true,
-            secretOrKey: process.env.JWT_SECRET,
+            secretOrKey: configService.get('JWT_SECRET'),
             passReqToCallback: true
         });
     }

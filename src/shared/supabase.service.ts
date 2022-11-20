@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class SupabaseService {
   supabase: any;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_KEY,
+      configService.get('SUPABASE_URL'),
+      configService.get('SUPABASE_KEY')
     );
   }
 
@@ -22,14 +23,14 @@ export class SupabaseService {
       .from('storage')
       .upload(`storage/${fileName}`, file.buffer, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: false
       });
     if (error) {
       throw new Error(error.message);
     }
     // return url of uploaded file
     return (
-      process.env.SUPABASE_URL +
+      this.configService.get('SUPABASE_URL') +
       '/storage/v1/object/public/storage/' +
       data.path
     );
@@ -41,9 +42,10 @@ export class SupabaseService {
       .from('storage')
       .remove([
         url.replace(
-          process.env.SUPABASE_URL + '/storage/v1/object/public/storage/',
-          '',
-        ),
+          this.configService.get('SUPABASE_URL') +
+            '/storage/v1/object/public/storage/',
+          ''
+        )
       ]);
     if (error) {
       throw new Error(error.message);
