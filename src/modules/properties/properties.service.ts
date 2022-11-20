@@ -13,41 +13,6 @@ export class PropertiesService {
     private readonly roomTypesService: RoomTypesService,
     private readonly supabaseService: SupabaseService
   ) {}
-  async findByPage(page: number) {
-    try {
-      const numberOfPropsPerPage = 10;
-      const results = await this.properties.findMany({
-        skip: (page - 1) * numberOfPropsPerPage,
-        take: numberOfPropsPerPage,
-        where: {
-          isDeleted: false
-        },
-        include: {
-          roomTypes: {
-            where: {
-              isDeleted: false,
-              rooms: {
-                some: {
-                  isDeleted: false,
-                  status: 'AVAILABLE'
-                }
-              }
-            },
-            select: {
-              price: true
-            },
-            orderBy: {
-              price: 'asc'
-            }
-          }
-        }
-      });
-
-      return results;
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   async findOne(id: string): Promise<Property> {
     try {
@@ -75,6 +40,9 @@ export class PropertiesService {
           roomTypes: {
             where: {
               isDeleted: false
+            },
+            orderBy: {
+              price: 'asc'
             },
             include: {
               _count: {
@@ -278,33 +246,28 @@ export class PropertiesService {
     const properties = await this.properties.findMany({
       take: page * 10,
       skip: (page - 1) * 10,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        streetAddress: true,
-        facilities: true,
-        roomCount: true,
-        photos: true,
-        ward: true,
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
         roomTypes: {
           select: {
-            rooms: {
-              select: {
-                id: true,
-                status: true,
-                // roomReserved: {
-                //   select: {
-                //     reservation: {
-                //       select: {
-                //         checkIn: true,
-                //         checkOut: true,
-                //       },
-                //     },
-                //   },
-                // },
-              },
-            }
+            price: true
+          },
+          orderBy: {
+            price: 'asc'
           }
         }
       },
