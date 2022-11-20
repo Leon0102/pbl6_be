@@ -1,0 +1,9 @@
+export enum Categories {
+  HOTEL = 'HOTEL',
+  HOSTEL = 'HOSTEL',
+  VILLA = 'VILLA',
+  RESORT = 'RESORT',
+  BED_AND_BREAKFAST = 'BED_AND_BREAKFAST',
+  OTHER = 'OTHER',
+  APARTMENT = 'APARTMENT',
+}
