@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import { RoomTypesModule } from './modules/room-types/room-types.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { UsersModule } from './modules/users/users.module';
@@ -27,6 +28,7 @@ import { SharedModule } from './shared/shared.module';
     RoomTypesModule,
     PrismaModule,
     ReservationsModule,
+    ReviewsModule
   ],
 })
 export class AppModule implements NestModule {

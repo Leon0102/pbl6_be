@@ -146,7 +146,7 @@ model Review {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
   isDeleted     Boolean     @default(false) @map("is_deleted")
-  proeperty     Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property     Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
