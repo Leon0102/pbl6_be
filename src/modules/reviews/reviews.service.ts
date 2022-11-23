@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { db } from '../../common/utils/dbClient';
 import { CreateReviewDto } from './dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
@@ -10,7 +10,31 @@ export class ReviewsService {
   private readonly review = db.review;
 
 
-  createReview(dto: CreateReviewDto) {
+  async createReview(dto: CreateReviewDto) {
+    // find property contains reservation
+    const property = await db.property.findUnique({
+      where: {
+        id: dto.propertyId
+      },
+      include: {
+        roomTypes: {
+          include: {
+            rooms: {
+              include: {
+                roomReserved: true
+              }
+            }
+          }
+        }
+      }
+    });
+    // check if reservation is exist
+    const reservation = property.roomTypes.map(roomType => roomType.rooms)
+      .flat().map(room => room.roomReserved).flat().find(roomReserved => roomReserved.reservationId === dto.reservationId);
+    if (!reservation) {
+      throw new BadRequestException('Reservation is not exist');
+    }
+
     return this.review.create({
       data: {
         content: dto.content,

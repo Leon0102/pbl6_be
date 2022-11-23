@@ -253,4 +253,19 @@ export class RoomTypesService {
 
     return roomType;
   }
+
+  getRoomTypesOfProperty(userId: string, propertyId: string) {
+    return this.roomTypes.findMany({
+      where: {
+        property: {
+          id: propertyId,
+          userId
+        }
+      }
+    });
+  }
+
+  getAllRoomsInRoomTypes(roomTypeId: string) {
+    return this.roomsService.getAllRoomsInRoomTypes(roomTypeId);
+  }
 }

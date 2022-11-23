@@ -30,14 +30,13 @@ export class VnPayService {
     var createDate =
       date.getFullYear().toString() +
       (date.getMonth() + 1).toString() +
-      date.getDate().toString() +
-      date.getHours().toString() +
+      date.getDate().toString() + '1' + date.getHours().toString() +
       date.getMinutes().toString() +
       date.getSeconds().toString();
     var orderId = dto.orderId;
     var amount = dto.amount;
     var bankCode = dto.bankCode;
-    var userId = dto.userid;
+    var userId = dto.userId;
 
     var orderInfo = dto.orderDescription;
     var orderType = dto.orderType;

@@ -12,24 +12,7 @@ export class ReservationsService {
   constructor(private readonly roomsService: RoomsService) {}
 
   async createReservation(userId: string, dto: CreateReservationDto) {
-    // create reservation with room id is get first room available from room type
-    const room = await db.room.findFirst({
-      where: {
-        status: 'AVAILABLE',
-        isDeleted: false,
-        roomTypeId: dto.roomTypeId,
-        updatedAt: {
-          lte: new Date(dto.checkIn)
-        }
-      },
-      select: {
-        id: true
-      }
-    });
-
-    if (!room) {
-      throw new NotFoundException('Not found room available');
-    }
+    const rooms = await this.roomsService.getListRoomsByListIds(dto.roomIds);
 
     const reservation = await this.reservation.create({
       data: {
@@ -38,9 +21,9 @@ export class ReservationsService {
         specialRequest: dto.specialRequest,
         status: ReservationStatus.PENDING,
         roomReserved: {
-          create: {
+          create: rooms.map(room => ({
             roomId: room.id
-          }
+          }))
         },
         user: {
           connect: {
@@ -107,7 +90,11 @@ export class ReservationsService {
         userId
       },
       include: {
-        roomReserved: true
+        roomReserved: {
+          select: {
+            roomId: true
+          }
+        }
       }
     });
   }
