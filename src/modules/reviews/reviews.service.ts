@@ -34,7 +34,6 @@ export class ReviewsService {
     if (!reservation) {
       throw new BadRequestException('Reservation is not exist');
     }
-
     return this.review.create({
       data: {
         content: dto.content,
@@ -50,7 +49,12 @@ export class ReviewsService {
           }
         },
       }
-    });
+    }).then(res => {
+      return res;
+    })
+      .catch(err => {
+        throw new BadRequestException('Review already exist');
+      });
   }
 
   getReviewsByPropertyId(propertyId: string) {

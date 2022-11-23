@@ -276,23 +276,28 @@ export class PropertiesService {
     const { location, checkIn, checkOut, rooms, guests, page } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        streetAddress: true,
-        facilities: true,
-        roomCount: true,
-        photos: true,
-        ward: true,
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
         roomTypes: {
           select: {
-            rooms: {
-              select: {
-                id: true,
-                status: true,
-              },
-            }
+            price: true
+          },
+          orderBy: {
+            price: 'asc'
           }
         }
       },
@@ -322,22 +327,6 @@ export class PropertiesService {
         ],
         roomTypes: {
           some: {
-            rooms: {
-              some: {
-                AND: [
-                  {
-                    isDeleted: false,
-                    status: 'AVAILABLE'
-                  },
-                  {
-                    updatedAt: {
-                      gte: checkIn,
-                      lte: checkOut
-                    }
-                  }
-                ]
-              }
-            },
             maxGuests: {
               gte: guests
             }
@@ -345,6 +334,28 @@ export class PropertiesService {
         },
         roomCount: {
           gte: rooms
+        },
+        NOT: {
+          roomTypes: {
+            every: {
+              rooms: {
+                every: {
+                  roomReserved: {
+                    every: {
+                      reservation: {
+                        checkIn: {
+                          lte: checkOut
+                        },
+                        checkOut: {
+                          gte: checkIn
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       orderBy: {
