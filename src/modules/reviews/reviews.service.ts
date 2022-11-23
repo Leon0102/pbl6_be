@@ -12,26 +12,26 @@ export class ReviewsService {
 
   async createReview(dto: CreateReviewDto) {
     // find property contains reservation
-    const property = await db.property.findUnique({
+    const property = await db.property.findFirst({
       where: {
-        id: dto.propertyId
-      },
-      include: {
+        id: dto.propertyId,
         roomTypes: {
-          include: {
+          some: {
             rooms: {
-              include: {
-                roomReserved: true
+              some: {
+                roomReserved: {
+                  some: {
+                    reservationId: dto.reservationId
+                  }
+                }
               }
             }
           }
         }
-      }
+      },
     });
     // check if reservation is exist
-    const reservation = property.roomTypes.map(roomType => roomType.rooms)
-      .flat().map(room => room.roomReserved).flat().find(roomReserved => roomReserved.reservationId === dto.reservationId);
-    if (!reservation) {
+    if (!property) {
       throw new BadRequestException('Reservation is not exist');
     }
     return this.review.create({
