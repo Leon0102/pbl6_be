@@ -253,8 +253,6 @@ export class RoomTypesService {
 
     return roomType;
   }
-<<<<<<< HEAD
-=======
 
   getRoomTypesOfProperty(userId: string, propertyId: string) {
     return this.roomTypes.findMany({
@@ -270,5 +268,4 @@ export class RoomTypesService {
   getAllRoomsInRoomTypes(roomTypeId: string) {
     return this.roomsService.getAllRoomsInRoomTypes(roomTypeId);
   }
->>>>>>> efe81ff5dd6a9a6d8724153fa98f35f74dccc082
 }
