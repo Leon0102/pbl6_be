@@ -30,7 +30,7 @@ export class VnPayService {
     var createDate =
       date.getFullYear().toString() +
       (date.getMonth() + 1).toString() +
-      date.getDate().toString() + '1' + date.getHours().toString() +
+      date.getDate().toString() + date.getHours().toString() +
       date.getMinutes().toString() +
       date.getSeconds().toString();
     var orderId = dto.orderId;
@@ -54,7 +54,7 @@ export class VnPayService {
     vnp_Params['vnp_CurrCode'] = currCode;
     vnp_Params['vnp_TxnRef'] = orderId;
     vnp_Params['vnp_OrderInfo'] = orderInfo;
-    vnp_Params['vnp_OrderType'] = orderType;
+    // vnp_Params['vnp_OrderType'] = orderType;
     vnp_Params['vnp_Amount'] = amount * 100;
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_IpAddr'] = '13.160.92.202';
