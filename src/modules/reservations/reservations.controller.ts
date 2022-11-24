@@ -101,7 +101,6 @@ export class ReservationsController {
 
   @Get('vnpay_return')
   async vnpayReturn(@Req() req: any) {
-    console.log(req.query);
     const result = this.vnPay.vnPayReturn(req);
     if (result.message === 'success') {
       await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
@@ -113,7 +112,6 @@ export class ReservationsController {
 
   @Get('vnpay_ipn')
   vnpayIpn(@Req() req: any) {
-    console.log(req.query);
     return this.vnPay.vnPayIPN(req);
   }
 }

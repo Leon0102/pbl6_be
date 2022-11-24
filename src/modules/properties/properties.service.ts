@@ -276,35 +276,28 @@ export class PropertiesService {
     const { location, checkIn, checkOut, rooms, guests, page } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
-      take: page * 10,
-      skip: (page - 1) * 10,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        streetAddress: true,
-        facilities: true,
-        roomCount: true,
-        photos: true,
-        ward: true,
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
         roomTypes: {
           select: {
-            rooms: {
-              select: {
-                id: true,
-                status: true,
-                // roomReserved: {
-                //   select: {
-                //     reservation: {
-                //       select: {
-                //         checkIn: true,
-                //         checkOut: true,
-                //       },
-                //     },
-                //   },
-                // },
-              },
-            }
+            price: true
+          },
+          orderBy: {
+            price: 'asc'
           }
         }
       },
@@ -334,22 +327,6 @@ export class PropertiesService {
         ],
         roomTypes: {
           some: {
-            rooms: {
-              some: {
-                AND: [
-                  {
-                    isDeleted: false,
-                    status: 'AVAILABLE'
-                  },
-                  {
-                    updatedAt: {
-                      gte: checkIn,
-                      lte: checkOut
-                    }
-                  }
-                ]
-              }
-            },
             maxGuests: {
               gte: guests
             }
@@ -357,11 +334,46 @@ export class PropertiesService {
         },
         roomCount: {
           gte: rooms
+        },
+        NOT: {
+          roomTypes: {
+            every: {
+              rooms: {
+                every: {
+                  roomReserved: {
+                    every: {
+                      reservation: {
+                        checkIn: {
+                          lte: checkOut
+                        },
+                        checkOut: {
+                          gte: checkIn
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
+      },
+      orderBy: {
+        updatedAt: 'desc'
       }
     });
+    const totalPage = Math.ceil(properties.length / 10);
+    const totalProperties = properties.length;
+    const result = properties.slice((page - 1) * 10, page * 10);
+    return {
+      properties: result,
+      currentPage: page,
+      totalPage: totalPage ? totalPage : 1,
+      totalProperties
+    };
+  }
 
-    // check if all rooms in property are not available and show room count available
-    return properties;
+  getRoomTypesOfProperty(userId: string, propertyId: string) {
+    return this.roomTypesService.getRoomTypesOfProperty(userId, propertyId);
   }
 }

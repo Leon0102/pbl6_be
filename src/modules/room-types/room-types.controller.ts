@@ -32,7 +32,7 @@ export class RoomTypesController {
   constructor(private readonly roomTypesService: RoomTypesService) {}
 
   @Get(':id')
-  @ApiAcceptedResponse({
+  @ApiOkResponse({
     type: String,
     description: 'Find room type details'
   })
@@ -42,6 +42,18 @@ export class RoomTypesController {
   async getRoomTypes(@GetUser() user: User, @Param('id') id: string) {
     console.log(id);
     return await this.roomTypesService.getRoomType(user.id, id);
+  }
+
+  @Get(':id/rooms')
+  @ApiOkResponse({
+    type: String,
+    description: 'Get all rooms in roomTypes'
+  })
+  @UseGuards(RoleGuard([RoleType.HOST, RoleType.GUEST]))
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all rooms in this roomTypes' })
+  async getAllRoomsInRoomTypes(@GetUser() user: User, @Param('id') id: string) {
+    return await this.roomTypesService.getAllRoomsInRoomTypes(id);
   }
 
   @UseGuards(RoleGuard([RoleType.HOST]))

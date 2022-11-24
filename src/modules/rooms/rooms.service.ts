@@ -42,6 +42,24 @@ export class RoomsService {
     });
   }
 
+  async getListRoomsByListIds(listIds: string[]) {
+    return await this.room.findMany({
+      where: {
+        id: {
+          in: listIds
+        }
+      }
+    });
+  }
+
+  async getAllRoomsInRoomTypes(roomTypeId: string) {
+    return await this.room.findMany({
+      where: {
+        roomTypeId
+      }
+    });
+  }
+
   async updateStatusRoom(id: string, status: RoomStatus) {
     return await db.room.update({
       where: {
