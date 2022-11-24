@@ -39,7 +39,7 @@ export class VnPayService {
     var userId = dto.userId;
 
     var orderInfo = dto.orderDescription;
-    var orderType = dto.orderType;
+    // var orderType = dto.orderType;
     var locale = dto.language;
     if (locale === null || locale === '') {
       locale = 'vn';
