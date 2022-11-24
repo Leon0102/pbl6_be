@@ -13,42 +13,6 @@ export class PropertiesService {
     private readonly roomTypesService: RoomTypesService,
     private readonly supabaseService: SupabaseService
   ) {}
-  async findByPage(page: number) {
-    try {
-      const numberOfPropsPerPage = 10;
-      const results = await this.properties.findMany({
-        skip: (page - 1) * numberOfPropsPerPage,
-        take: numberOfPropsPerPage,
-        where: {
-          isDeleted: false
-        },
-        include: {
-          roomTypes: {
-            where: {
-              isDeleted: false,
-              rooms: {
-                some: {
-                  isDeleted: false,
-                  status: 'AVAILABLE'
-                }
-              }
-            },
-            select: {
-              price: true
-            },
-            orderBy: {
-              price: 'asc'
-            }
-          }
-        }
-      });
-
-      return results;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async findOne(id: string): Promise<Property> {
     try {
       const prop = await this.properties.findFirst({
