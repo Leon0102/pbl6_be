@@ -337,11 +337,11 @@ export class PropertiesService {
         },
         NOT: {
           roomTypes: {
-            every: {
+            some: {
               rooms: {
-                every: {
+                some: {
                   roomReserved: {
-                    every: {
+                    some: {
                       reservation: {
                         checkIn: {
                           lte: checkOut
