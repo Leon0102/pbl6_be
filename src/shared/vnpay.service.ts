@@ -31,7 +31,6 @@ export class VnPayService {
       date.getFullYear().toString() +
       (date.getMonth() + 1).toString() +
       date.getDate().toString() +
-      '1' +
       date.getHours().toString() +
       date.getMinutes().toString() +
       date.getSeconds().toString();
@@ -41,7 +40,7 @@ export class VnPayService {
     var userId = dto.userId;
 
     var orderInfo = dto.orderDescription;
-    var orderType = dto.orderType;
+    // var orderType = dto.orderType;
     var locale = dto.language;
     if (locale === null || locale === '') {
       locale = 'vn';
@@ -56,7 +55,7 @@ export class VnPayService {
     vnp_Params['vnp_CurrCode'] = currCode;
     vnp_Params['vnp_TxnRef'] = orderId;
     vnp_Params['vnp_OrderInfo'] = orderInfo;
-    vnp_Params['vnp_OrderType'] = orderType;
+    // vnp_Params['vnp_OrderType'] = orderType;
     vnp_Params['vnp_Amount'] = amount * 100;
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_IpAddr'] = '13.160.92.202';
