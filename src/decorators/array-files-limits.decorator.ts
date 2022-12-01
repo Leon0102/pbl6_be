@@ -12,7 +12,7 @@ export function ArrayFilesLimits(number: number) {
                 fileFilter: (req, file, cb) => {
                     if (
                         file.mimetype !== 'application/octet-stream' &&
-                        !/image\/(jpg|jpeg|png|gif)$/.test(file.mimetype)
+                        !/image\/(jpg|jpeg|png|webp)$/.test(file.mimetype)
                     ) {
                         cb(new BadRequestException('File type is not supported'), false);
                     } else {

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "wanderlust-pbl06",
+  "private_key_id": "2138b40642ec14d5b38b6d7e960a70e0fcc7233d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDb9zNPCxXi2g7u\nhxx0bp1Re8745DdGm0WOQiTWJjy2zC+nHoZOuIRlFb3cTbRui4QHloHvwT8UfbSm\nvU95mU4lZ8pfALpT7du099jZPKNTb0s/WipW4uKfcPhHNSmDSOjqRkp6NRtKNRAG\nK9+LJhYvdTpXWtqY+Up3yVq6BCDDF9wRMfQOw2YX3cYZ5H1YJ+C7ub85u+izeWAi\nQDbdaE4F1VtQfo63jpFMFMqN5MwroYGaAo7vsYSkcHw++S82rNVGn7r93GtgT47H\n/Z7Tz0lzT9GCy1HSh0OGIektjosMsc8GJZTk/gKT8xDGYt37gIcnzUCChTZ51VGD\nDfHlC1DNAgMBAAECggEALOlTI49q34+QPul9SNSQ8GMsBitqkdMAJ6Sfqs3R1azp\nCeE0oPwRpCYFRubisTNxOK9lRlOZkpB8AxNiF7zSdNa1PiKC6MIG+vMj5m74FgAC\nSCQbwvO+O7mwJ7HWEQUg8Tx61mrjcIpXBDuO//U90GDKEa3uNg+oQb7t9E8FdW+X\nvkIpkZe7BC3E6ZBgt8iJ6eMEPQzEMUabrwlgi/agjtKbDsnitFbhZ5XN5QvMrtDC\nQO8PHPtWadZQy5Gvan6tZOy/+EKo5+sHBUzR41etFiEhhXHoTkiklxdjpiEt6K60\n+Yjr/6oFT3K2FTfAakocjUQV1qxOvuXjZwazuBsLoQKBgQD1EFBScv0v7589bwJH\nYsg17vzsUtIFNi8UOh1sdZmwxr2xr9M720r6zSQul9u1mdw/dTjN1h+cott6ZpYN\nlomKvLBsoxxWAsTW48TVhU0R2/mWAS6gWgfGbnnZWX3UwhXQyV1eGE54HUvTiLf6\ny5oINW1ZPcQaewAhqMxZ7790JQKBgQDlyChwzvb3Y11y464Ik0MNVqieU7vuDJvf\n27fkJm5aaUFfLdLDe94oMXjWEQ4f/VHpoK2rDzryEOlidkpRZMoyiUgUJ+y7wtNr\naoxBApCE9oz5gqf3bmqoH91FlAj7b4pq8Eba5jT3FXH3eCMKe45IeMzbGwGh2vfP\nM4qayxi1iQKBgQDg4Al0vwPKOw5ap0TmEKU7qIP6r7z8/02QOAvL/NX9O0HSjU8+\ne+p/3kK3Zq48JGXQ7VYku7niWCciWISVD3BDGQajicF0w7Gwpu12KY4hN0P9/DO2\n/SZpVfMGGXK4CylNn5nHwHIxEmEESU7aGn7LzYr7+wu6aOgj+usaFEAQ6QKBgDWM\nnOgVQ3bJwFhq+P7kmsa8AFXNe8lxRM45nTRdRHBrgSGWQzztXAuP4/I3TUxlM7a3\njGGGDh2llU4t9Qnc7EY0ugiAeWoUcELjNMZdu6JQ9u+a5FwEbnS54E47vpAiIWbk\nkg6ngYZniAS9CaWCv9jh1hPlyk6XAhNWlqGWXS7JAoGAV77GDlJICZwUE/JeevUC\niO0dZynlODhhaOSe0MhvL54oYzGRA+hh49qqnhU9990Tt1oE3f9WvBMybkTyYDXz\n1PFJecRXY2xDEQiMOadXLdrVFvMJ3SvWKAIG4dG3c2p8oneax5SHgs6WDfxOs/DH\ncXlGD7IeqNUtvhKbY1Y1sLI=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-99ycd@wanderlust-pbl06.iam.gserviceaccount.com",
+  "client_id": "115770269826405050261",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-99ycd%40wanderlust-pbl06.iam.gserviceaccount.com"
+}

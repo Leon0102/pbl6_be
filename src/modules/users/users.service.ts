@@ -28,6 +28,15 @@ export class UsersService {
     return user;
   }
 
+  async getUserById(id: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+    return user;
+  }
+
   async createUser(user: CreateUserDto): Promise<any> {
     if (await this.getUserByEmail(user.email)) {
       throw new HttpException(

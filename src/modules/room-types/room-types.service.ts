@@ -240,10 +240,7 @@ export class RoomTypesService {
   async getRoomType(userId: string, id: string) {
     const roomType = await this.roomTypes.findFirst({
       where: {
-        id,
-        property: {
-          userId
-        }
+        id
       }
     });
 

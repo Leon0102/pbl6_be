@@ -3,16 +3,25 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType, User } from '@prisma/client';
 import { db } from '../../common/utils/dbClient';
 import { StatusReservation } from '../../constants';
+import { MailService } from '../../shared/mail.service';
 import { RoomsService } from '../rooms/rooms.service';
+import { UsersService } from '../users/users.service';
 import { CreateReservationDto } from './dto';
 
 @Injectable()
 export class ReservationsService {
   private readonly reservation = db.reservation;
-  constructor(private readonly roomsService: RoomsService) {}
+  constructor(
+    private readonly roomsService: RoomsService,
+    private readonly mailService: MailService,
+
+    private readonly userService: UsersService,
+  ) {}
 
   async createReservation(userId: string, dto: CreateReservationDto) {
-    const rooms = await this.roomsService.getListRoomsByListIds(dto.roomIds);
+    const user = await this.userService.getUserById(userId);
+
+    const rooms = await this.roomsService.getListRoomsByNumberOfRoom(dto.roomTypeId, dto.roomNumber);
 
     const reservation = await this.reservation.create({
       data: {
@@ -20,6 +29,7 @@ export class ReservationsService {
         checkOut: dto.checkOut,
         specialRequest: dto.specialRequest,
         status: ReservationStatus.PENDING,
+        guestCount: dto.guestCount,
         roomReserved: {
           create: rooms.map(room => ({
             roomId: room.id
@@ -32,9 +42,19 @@ export class ReservationsService {
         }
       }
     });
-    return {
-      message: 'Create reservation success'
-    };
+    this.mailService.sendEmail(
+      user.email,
+      'Bạn đã đặt phòng thành công',
+      {
+        username: user.name,
+        checkIn: dto.checkIn,
+        checkOut: dto.checkOut,
+        guestCount: dto.guestCount,
+        property: rooms[0].roomType.property.name,
+        totalPrice: rooms[0].roomType.price * dto.roomNumber,
+      }
+    );
+    return reservation.id;
   }
 
   async findAll() {
