@@ -24,7 +24,7 @@ export class MailService {
     };
   }
 
-  async sendEmail(to: string, subject: string, context: any) {
+  async sendEmailReservation(to: string, subject: string, context: any) {
     const { username, property, checkIn, checkOut, guestCount, totalPrice } = context;
     return this.mailerService.sendMail({
       to,

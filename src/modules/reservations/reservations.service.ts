@@ -42,7 +42,7 @@ export class ReservationsService {
         }
       }
     });
-    this.mailService.sendEmail(
+    this.mailService.sendEmailReservation(
       user.email,
       'Bạn đã đặt phòng thành công',
       {
@@ -314,7 +314,14 @@ export class ReservationsService {
     });
 
     reservations.forEach(async reservation => {
-      await this.cancelReservation(reservation.id);
+      await this.reservation.update({
+        where: {
+          id: reservation.id
+        },
+        data: {
+          status: StatusReservation.CANCELLED
+        }
+      });
     });
   }
 }

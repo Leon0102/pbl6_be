@@ -39,7 +39,7 @@
       <mj-section background-color="#ffffff" padding-left="15px" padding-right="15px">
         <mj-column width="100%">
           <mj-text color="#212b35" font-weight="bold" font-size="20px">
-            Croft's in Austin is opening December 20th
+            Wanderlust Booking Information
           </mj-text>
           <mj-text color="#637381" font-size="16px">
             Hi {{username}},
@@ -48,13 +48,15 @@
            Bạn đã đặt phòng thành công
           </mj-text>
           <mj-text color="#637381" font-size="16px">
-            Tempora culpa porro labore. Repudiandae accusamus obcaecati voluptatibus accusantium perspiciatis:
+            Đây là thông tin đặt phòng của bạn:
           </mj-text>
           <mj-text color="#637381" font-size="16px">
             <ul>
-              <li style="padding-bottom: 20px"><strong>Lorem ipsum dolor:</strong> Sit amet consectetur adipisicing elit.</li>
-              <li style="padding-bottom: 20px"><strong>Quia a assumenda nulla:</strong> Repudiandae accusamus obcaecati voluptatibus accusantium perspiciatis.</li>
-              <li><strong>Tempora culpa porro labore:</strong> In quisquam optio quibusdam fugiat perspiciatis nobis.</li>
+              <li style="padding-bottom: 20px"><strong>Nơi lưu trú:</strong> ${property}.</li>
+              <li style="padding-bottom: 20px"><strong>Thời gian check in:</strong> ${checkin}.</li>
+              <li style="padding-bottom: 20px"><strong>Thời gian check out:</strong> ${checkout}.</li>
+              <li style="padding-bottom: 20px"><strong>Số người:</strong> ${guestCount}.</li>
+              <li style="padding-bottom: 20px"><strong>Tổng tiền:</strong> ${totalPrice}.</li>
             </ul>
           </mj-text>
           <mj-text color="#637381" font-size="16px" padding-bottom="30px">
