@@ -12,10 +12,17 @@
     "baseUrl": "./src",
     "incremental": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "paths": {
-      "@*": ["/*"],
-      "@common/*": ["common/*"],
-      "@modules/*": ["modules/*"]
+      "@*": [
+        "/*"
+      ],
+      "@common/*": [
+        "common/*"
+      ],
+      "@modules/*": [
+        "modules/*"
+      ]
     }
   }
 }

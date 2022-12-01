@@ -1,5 +1,5 @@
 import { db } from '@common/utils/dbClient';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Prisma, RoomStatus } from '@prisma/client';
 
@@ -42,20 +42,39 @@ export class RoomsService {
     });
   }
 
-  async getListRoomsByListIds(listIds: string[]) {
-    return await this.room.findMany({
-      where: {
-        id: {
-          in: listIds
+  async getListRoomsByNumberOfRoom(roomTypeId: string, numberOfRoom: number) {
+    const rooms = await this.room.findMany({
+      select: {
+        id: true,
+        roomType: {
+          select: {
+            price: true,
+            property: {
+              select: {
+                name: true
+              }
+            }
+          }
         }
-      }
+      },
+      where: {
+        roomTypeId: roomTypeId,
+        status: 'AVAILABLE'
+      },
+      take: numberOfRoom
     });
+
+    if (rooms.length < numberOfRoom) {
+      throw new BadRequestException('Not enough room');
+    }
+
+    return rooms;
   }
 
   async getAllRoomsInRoomTypes(roomTypeId: string) {
     return await this.room.findMany({
       where: {
-        roomTypeId
+        roomTypeId: roomTypeId,
       }
     });
   }

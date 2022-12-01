@@ -15,7 +15,7 @@ export class VnPayService {
     };
   }
 
-  createPaymentUrl(dto: any) {
+  createPaymentUrl(dto: any, userId: string) {
     // var ipAddr = req.headers['x-forwarded-for'] ||
     //     req.connection.remoteAddress ||
     //     req.socket.remoteAddress ||
@@ -36,7 +36,6 @@ export class VnPayService {
     var orderId = dto.orderId;
     var amount = dto.amount;
     var bankCode = dto.bankCode;
-    var userId = dto.userId;
 
     var orderInfo = dto.orderDescription;
     // var orderType = dto.orderType;

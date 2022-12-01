@@ -2,7 +2,7 @@ import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Property } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 
@@ -13,7 +13,7 @@ export class PropertiesService {
     private readonly roomTypesService: RoomTypesService,
     private readonly supabaseService: SupabaseService
   ) {}
-  async findOne(id: string): Promise<Property> {
+  async findOne(id: string) {
     try {
       const prop = await this.properties.findFirst({
         where: {
@@ -55,7 +55,20 @@ export class PropertiesService {
           }
         }
       });
-      return prop;
+
+      const avgRating = await db.review.aggregate({
+        where: {
+          propertyId: id
+        },
+        _avg: {
+          rating: true
+        }
+      });
+
+      return {
+        ...prop,
+        rating: avgRating._avg.rating
+      };
     } catch (error) {
       console.log(error);
     }
@@ -237,7 +250,7 @@ export class PropertiesService {
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
   async search(search: SearchPropertyDto) {
-    const { location, checkIn, checkOut, rooms, guests, page } = search;
+    const { location, checkIn, checkOut, rooms, guests, page, orderByPrice, orderByRating, category, startPrice, endPrice } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
       include: {
@@ -256,12 +269,14 @@ export class PropertiesService {
             }
           }
         },
+        reviews: {
+          select: {
+            rating: true,
+          }
+        },
         roomTypes: {
           select: {
             price: true
-          },
-          orderBy: {
-            price: 'asc'
           }
         }
       },
@@ -323,12 +338,52 @@ export class PropertiesService {
         }
       },
       orderBy: {
-        updatedAt: 'desc'
+        updatedAt: 'desc',
       },
     });
-    const totalPage = Math.ceil(properties.length / 10);
-    const totalProperties = properties.length;
-    const result = properties.slice((page - 1) * 10, page * 10);
+    let newResult = properties.map(property => {
+      let avgRating = property.reviews.reduce((acc, curr) => acc + curr.rating, 0) / property.reviews.length;
+      delete property.reviews;
+      return {
+        ...property,
+        avgRating
+      };
+    });
+
+    console.log(newResult);
+
+    if (orderByRating) {
+      if (orderByRating === 'asc') {
+        newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
+      }
+      else {
+        newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
+      }
+    }
+
+    if (orderByPrice) {
+      if (orderByPrice === 'asc') {
+        newResult = newResult.sort((a, b) => a.roomTypes[0].price - b.roomTypes[0].price);
+      }
+      else {
+        newResult = newResult.sort((a, b) => b.roomTypes[0].price - a.roomTypes[0].price);
+      }
+    }
+
+    if (category) {
+      newResult = newResult.filter(property => property.categoryId === category);
+    }
+
+    if (startPrice && endPrice) {
+      newResult = newResult.filter(property => property.roomTypes.filter(roomType => roomType.price >= startPrice && roomType.price <= endPrice));
+    }
+
+    console.log(newResult);
+
+
+    const totalPage = Math.ceil(newResult.length / 10);
+    const totalProperties = newResult.length;
+    const result = newResult.slice((page - 1) * 10, page * 10);
     return {
       properties: result,
       currentPage: page,
