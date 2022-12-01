@@ -115,6 +115,7 @@ model Reservation {
   checkOut       DateTime          @map("check_out")
   specialRequest String?           @map("special_request")
   status         ReservationStatus
+  guestCount     Int               @map("guest_count") @default(1)
   userId         String            @map("user_id")
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
