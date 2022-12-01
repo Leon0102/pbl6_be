@@ -39,17 +39,17 @@ export class ReservationsController {
     return this.reservationsService.findAll();
   }
 
-  @Get('my-reservations')
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOperation({ summary: 'Get One Reservation' })
   @ApiOkResponse({
-    description: 'Get All Reservations Of Guest'
+    description: 'Get One Reservation'
   })
-  @ApiOperation({ summary: 'Get All Reservations Of Guest' })
-  async getUserReservation(@GetUser() user: User) {
-    return this.reservationsService.getUserReservation(user.id);
+  @ApiOperation({ summary: 'Get One Reservation' })
+  async getOneReservation(@Param('id') id: string, @GetUser() user: User) {
+    return this.reservationsService.getOneReservation(user, id);
   }
-
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RoleGuard([RoleType.GUEST]))
