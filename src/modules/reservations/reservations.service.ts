@@ -176,6 +176,9 @@ export class ReservationsService {
             }
           }
         }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
     // count total price  of reservation
