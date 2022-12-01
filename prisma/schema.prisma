@@ -246,7 +246,7 @@ enum RoomStatus {
 enum ReservationStatus {
   PENDING
   CONFIRMED
-  CANCELED
+  CANCELLED
   FAILED
   COMPLETED
 }
