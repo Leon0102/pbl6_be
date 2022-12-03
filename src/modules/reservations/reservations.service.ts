@@ -15,13 +15,16 @@ export class ReservationsService {
     private readonly roomsService: RoomsService,
     private readonly mailService: MailService,
 
-    private readonly userService: UsersService,
+    private readonly userService: UsersService
   ) {}
 
   async createReservation(userId: string, dto: CreateReservationDto) {
     const user = await this.userService.getUserById(userId);
 
-    const rooms = await this.roomsService.getListRoomsByNumberOfRoom(dto.roomTypeId, dto.roomNumber);
+    const rooms = await this.roomsService.getListRoomsByNumberOfRoom(
+      dto.roomTypeId,
+      dto.roomNumber
+    );
 
     const reservation = await this.reservation.create({
       data: {
@@ -51,7 +54,13 @@ export class ReservationsService {
         checkOut: dto.checkOut,
         guestCount: dto.guestCount,
         property: rooms[0].roomType.property.name,
-        totalPrice: rooms[0].roomType.price * dto.roomNumber,
+        totalPrice:
+          rooms[0].roomType.price *
+          dto.roomNumber *
+          Math.floor(
+            (dto.checkOut.getTime() - dto.checkIn.getTime()) /
+              (1000 * 3600 * 24)
+          )
       }
     );
     return reservation.id;
@@ -165,7 +174,11 @@ export class ReservationsService {
       specialRequest: rs.specialRequest,
       property: rs.roomReserved[0].room.roomType.property,
       roomType: rs.roomReserved[0].room.roomType,
-      totalPrice,
+      totalPrice:
+        totalPrice *
+        Math.floor(
+          (rs.checkOut.getTime() - rs.checkIn.getTime()) / (1000 * 3600 * 24)
+        ),
       numberOfRooms
     };
   }
