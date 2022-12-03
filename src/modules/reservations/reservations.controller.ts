@@ -39,15 +39,19 @@ export class ReservationsController {
     return this.reservationsService.findAll();
   }
 
-  @Get('my-reservations')
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOperation({ summary: 'Get One Reservation' })
   @ApiOkResponse({
-    description: 'Get All Reservations Of Guest'
+    description: 'Get One Reservation'
   })
-  @ApiOperation({ summary: 'Get All Reservations Of Guest' })
-  async getUserReservation(@GetUser() user: User) {
-    return this.reservationsService.getUserReservation(user.id);
+  @ApiOperation({ summary: 'Get One Reservation' })
+  async getOneReservation(
+    @Param('id') id: string,
+    @GetUser() user: User
+  ) {
+    return this.reservationsService.getOneReservation(user, id);
   }
 
   @Post()
@@ -94,9 +98,11 @@ export class ReservationsController {
     description: 'Get link to payment'
   })
   @ApiOperation({ summary: 'Get link to payment' })
-  createPaymentUrl(@Body() dto: any) {
+  createPaymentUrl(@Body() dto: any,
+    @GetUser() user: User
+  ) {
     console.log(dto);
-    return this.vnPay.createPaymentUrl(dto);
+    return this.vnPay.createPaymentUrl(dto, user.id);
   }
 
   @Get('vnpay_return')
