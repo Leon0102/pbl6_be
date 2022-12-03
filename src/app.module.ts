@@ -45,7 +45,7 @@ import { SharedModule } from './shared/shared.module';
     PrismaModule,
     ReservationsModule,
     ReviewsModule
-  ],
+  ]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

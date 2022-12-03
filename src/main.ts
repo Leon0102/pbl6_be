@@ -25,14 +25,16 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new WrapResponseInterceptor());
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-    transformOptions: {
-      enableImplicitConversion: true
-    }
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true
+      }
+    })
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Wanderlust API')
@@ -44,7 +46,8 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(configService.get('PORT'), '0.0.0.0');
-  console.info(`🚀 Server running on: http://localhost:${configService.get('PORT')}/api`);
-
+  console.info(
+    `🚀 Server running on: http://localhost:${configService.get('PORT')}/api`
+  );
 }
 bootstrap();

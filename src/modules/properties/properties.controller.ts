@@ -66,17 +66,16 @@ export class PropertiesController {
   })
   async getRoomTypesOfProperty(
     @GetUser() user: User,
-    @Query('propertyId') propertyId: string) {
+    @Query('propertyId') propertyId: string
+  ) {
     return this.propertiesService.getRoomTypesOfProperty(user.id, propertyId);
   }
-
 
   // Get Details of a property
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find One Properties' })
-  async findById(
-    @Param('id') id: string) {
+  async findById(@Param('id') id: string) {
     return this.propertiesService.findOne(id);
   }
 

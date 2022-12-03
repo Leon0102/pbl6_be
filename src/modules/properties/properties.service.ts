@@ -40,6 +40,9 @@ export class PropertiesService {
             where: {
               isDeleted: false
             },
+            orderBy: {
+              price: 'asc'
+            },
             include: {
               _count: {
                 select: {
@@ -250,7 +253,19 @@ export class PropertiesService {
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
   async search(search: SearchPropertyDto) {
-    const { location, checkIn, checkOut, rooms, guests, page, orderByPrice, orderByRating, category, startPrice, endPrice } = search;
+    const {
+      location,
+      checkIn,
+      checkOut,
+      rooms,
+      guests,
+      page,
+      orderByPrice,
+      orderByRating,
+      category,
+      startPrice,
+      endPrice
+    } = search;
     // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
     const properties = await this.properties.findMany({
       include: {
@@ -271,12 +286,15 @@ export class PropertiesService {
         },
         reviews: {
           select: {
-            rating: true,
+            rating: true
           }
         },
         roomTypes: {
           select: {
             price: true
+          },
+          orderBy: {
+            price: 'asc'
           }
         }
       },
@@ -338,11 +356,13 @@ export class PropertiesService {
         }
       },
       orderBy: {
-        updatedAt: 'desc',
-      },
+        updatedAt: 'desc'
+      }
     });
     let newResult = properties.map(property => {
-      let avgRating = property.reviews.reduce((acc, curr) => acc + curr.rating, 0) / property.reviews.length;
+      let avgRating =
+        property.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+        property.reviews.length;
       delete property.reviews;
       return {
         ...property,
@@ -355,31 +375,38 @@ export class PropertiesService {
     if (orderByRating) {
       if (orderByRating === 'asc') {
         newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
-      }
-      else {
+      } else {
         newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
       }
     }
 
     if (orderByPrice) {
       if (orderByPrice === 'asc') {
-        newResult = newResult.sort((a, b) => a.roomTypes[0].price - b.roomTypes[0].price);
-      }
-      else {
-        newResult = newResult.sort((a, b) => b.roomTypes[0].price - a.roomTypes[0].price);
+        newResult = newResult.sort(
+          (a, b) => a.roomTypes[0].price - b.roomTypes[0].price
+        );
+      } else {
+        newResult = newResult.sort(
+          (a, b) => b.roomTypes[0].price - a.roomTypes[0].price
+        );
       }
     }
 
     if (category) {
-      newResult = newResult.filter(property => property.categoryId === category);
+      newResult = newResult.filter(
+        property => property.categoryId === category
+      );
     }
 
     if (startPrice && endPrice) {
-      newResult = newResult.filter(property => property.roomTypes.filter(roomType => roomType.price >= startPrice && roomType.price <= endPrice));
+      newResult = newResult.filter(property =>
+        property.roomTypes.filter(
+          roomType => roomType.price >= startPrice && roomType.price <= endPrice
+        )
+      );
     }
 
     console.log(newResult);
-
 
     const totalPage = Math.ceil(newResult.length / 10);
     const totalProperties = newResult.length;

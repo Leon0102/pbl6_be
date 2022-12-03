@@ -6,12 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 export class SupabaseService {
   supabase: any;
 
-  constructor(
-    private readonly configService: ConfigService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.supabase = createClient(
       configService.get('SUPABASE_URL'),
-      configService.get('SUPABASE_KEY'),
+      configService.get('SUPABASE_KEY')
     );
   }
 
@@ -25,7 +23,7 @@ export class SupabaseService {
       .from('storage')
       .upload(`storage/${fileName}`, file.buffer, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: false
       });
     if (error) {
       throw new Error(error.message);
@@ -44,9 +42,10 @@ export class SupabaseService {
       .from('storage')
       .remove([
         url.replace(
-          this.configService.get('SUPABASE_URL') + '/storage/v1/object/public/storage/',
-          '',
-        ),
+          this.configService.get('SUPABASE_URL') +
+            '/storage/v1/object/public/storage/',
+          ''
+        )
       ]);
     if (error) {
       throw new Error(error.message);

@@ -11,7 +11,7 @@ export class VnPayService {
     return {
       title: 'Tạo mới đơn hàng',
       amount: 10000,
-      description: desc,
+      description: desc
     };
   }
 
@@ -30,7 +30,8 @@ export class VnPayService {
     var createDate =
       date.getFullYear().toString() +
       (date.getMonth() + 1).toString() +
-      date.getDate().toString() + date.getHours().toString() +
+      date.getDate().toString() +
+      date.getHours().toString() +
       date.getMinutes().toString() +
       date.getSeconds().toString();
     var orderId = dto.orderId;
@@ -72,7 +73,7 @@ export class VnPayService {
     vnp_Params['vnp_SecureHash'] = signed;
     vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
     return {
-      message: vnpUrl,
+      message: vnpUrl
     };
   }
 
@@ -99,11 +100,11 @@ export class VnPayService {
       //Kiem tra xem du lieu trong db co hop le hay khong va thong bao ket qua
 
       return {
-        message: 'success',
+        message: 'success'
       };
     } else {
       return {
-        message: 'fail',
+        message: 'fail'
       };
     }
   }

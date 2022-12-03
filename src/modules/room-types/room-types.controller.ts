@@ -56,7 +56,6 @@ export class RoomTypesController {
     return await this.roomTypesService.getAllRoomsInRoomTypes(id);
   }
 
-
   @UseGuards(RoleGuard([RoleType.HOST]))
   @Post()
   @ApiOkResponse({
