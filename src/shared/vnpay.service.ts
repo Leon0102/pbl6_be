@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as xdate from 'date-and-time';
+import * as moment from 'moment';
 @Injectable()
 export class VnPayService {
   constructor(private readonly configService: ConfigService) {}
@@ -26,7 +26,7 @@ export class VnPayService {
 
     var date = new Date();
     // createdate format yyyyMMddHHmmss
-    var createDate = xdate.format(date, 'YYYYMMDDHHmmss');
+    var createDate = moment.utc(date).format('YYYYMMDDHHmmss');
     var orderId = dto.orderId;
     var amount = dto.amount;
     var bankCode = dto.bankCode;
