@@ -101,7 +101,6 @@ export class ReservationsController {
   createPaymentUrl(@Body() dto: any,
     @GetUser() user: User
   ) {
-    console.log(dto);
     return this.vnPay.createPaymentUrl(dto, user.id);
   }
 

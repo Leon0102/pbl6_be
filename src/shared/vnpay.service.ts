@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
+import * as xdate from 'date-and-time';
 @Injectable()
 export class VnPayService {
   constructor(private readonly configService: ConfigService) {}
   async getPaymentUrl() {
-    var date = new Date();
-
     var desc = 'Thanh toan don hang thoi gian: ' + new Date().toString();
     return {
       title: 'Tạo mới đơn hàng',
@@ -27,13 +25,8 @@ export class VnPayService {
     var returnUrl = this.configService.get('vnp_ReturnUrl');
 
     var date = new Date();
-    var createDate =
-      date.getFullYear().toString() +
-      (date.getMonth() + 1).toString() +
-      date.getDate().toString() +
-      date.getHours().toString() +
-      date.getMinutes().toString() +
-      date.getSeconds().toString();
+    // createdate format yyyyMMddHHmmss
+    var createDate = xdate.format(date, 'YYYYMMDDHHmmss');
     var orderId = dto.orderId;
     var amount = dto.amount;
     var bankCode = dto.bankCode;
