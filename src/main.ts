@@ -9,7 +9,8 @@ import { AppModule } from './app.module';
 import { WrapResponseInterceptor } from './interceptor/wrap-response.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.use(helmet());
