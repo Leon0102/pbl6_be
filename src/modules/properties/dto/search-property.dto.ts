@@ -1,7 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { PageOptionsDto } from '../../../common/dto/page-options.dto';
-import { OrderBy } from '../../../constants';
 
 export class SearchPropertyDto extends PageOptionsDto {
     @IsString()
@@ -34,15 +33,10 @@ export class SearchPropertyDto extends PageOptionsDto {
     @ApiPropertyOptional()
     readonly category: string;
 
-    @IsEnum(OrderBy)
+    @IsString()
     @IsOptional()
     @ApiPropertyOptional()
-    readonly orderByPrice: OrderBy;
-
-    @IsEnum(OrderBy)
-    @IsOptional()
-    @ApiPropertyOptional()
-    readonly orderByRating: OrderBy;
+    readonly orderBy: string;
 
     @IsNumber()
     @IsOptional()

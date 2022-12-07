@@ -260,8 +260,7 @@ export class PropertiesService {
       rooms,
       guests,
       page,
-      orderByPrice,
-      orderByRating,
+      orderBy,
       category,
       startPrice,
       endPrice
@@ -369,27 +368,21 @@ export class PropertiesService {
         avgRating
       };
     });
-
-    console.log(newResult);
-
-    if (orderByRating) {
-      if (orderByRating === 'asc') {
+    switch (orderBy) {
+      case 'price.asc':
+        newResult = newResult.sort((a, b) => a.roomTypes[0].price - b.roomTypes[0].price);
+        break;
+      case 'price.desc':
+        newResult = newResult.sort((a, b) => b.roomTypes[0].price - a.roomTypes[0].price);
+        break;
+      case 'rating.asc':
         newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
-      } else {
+        break;
+      case 'rating.desc':
         newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
-      }
-    }
-
-    if (orderByPrice) {
-      if (orderByPrice === 'asc') {
-        newResult = newResult.sort(
-          (a, b) => a.roomTypes[0].price - b.roomTypes[0].price
-        );
-      } else {
-        newResult = newResult.sort(
-          (a, b) => b.roomTypes[0].price - a.roomTypes[0].price
-        );
-      }
+        break;
+      default:
+        break;
     }
 
     if (category) {
@@ -405,9 +398,6 @@ export class PropertiesService {
         )
       );
     }
-
-    console.log(newResult);
-
     const totalPage = Math.ceil(newResult.length / 10);
     const totalProperties = newResult.length;
     const result = newResult.slice((page - 1) * 10, page * 10);
