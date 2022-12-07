@@ -39,6 +39,16 @@ export class ReservationsController {
     return this.reservationsService.findAll();
   }
 
+  @Get('vnpay_return')
+  async vnpayReturn(@Req() req: any) {
+    const result = this.vnPay.vnPayReturn(req);
+    if (result.message === 'success') {
+      await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      return {
+        message: 'Reservation confirmed'
+      };
+    }
+  }
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
@@ -47,10 +57,7 @@ export class ReservationsController {
     description: 'Get One Reservation'
   })
   @ApiOperation({ summary: 'Get One Reservation' })
-  async getOneReservation(
-    @Param('id') id: string,
-    @GetUser() user: User
-  ) {
+  async getOneReservation(@Param('id') id: string, @GetUser() user: User) {
     return this.reservationsService.getOneReservation(user, id);
   }
 
@@ -98,21 +105,8 @@ export class ReservationsController {
     description: 'Get link to payment'
   })
   @ApiOperation({ summary: 'Get link to payment' })
-  createPaymentUrl(@Body() dto: any,
-    @GetUser() user: User
-  ) {
+  createPaymentUrl(@Body() dto: any, @GetUser() user: User) {
     return this.vnPay.createPaymentUrl(dto, user.id);
-  }
-
-  @Get('vnpay_return')
-  async vnpayReturn(@Req() req: any) {
-    const result = this.vnPay.vnPayReturn(req);
-    if (result.message === 'success') {
-      await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
-      return {
-        message: 'Reservation confirmed'
-      };
-    }
   }
 
   @Get('vnpay_ipn')
