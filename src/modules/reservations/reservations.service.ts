@@ -45,6 +45,12 @@ export class ReservationsService {
         }
       }
     });
+    const totalPrice =
+      rooms[0].roomType.price *
+      dto.roomNumber *
+      Math.floor(
+        (dto.checkOut.getTime() - dto.checkIn.getTime()) / (1000 * 3600 * 24)
+      );
     this.mailService.sendEmailReservation(
       user.email,
       'Bạn đã đặt phòng thành công',
@@ -54,16 +60,13 @@ export class ReservationsService {
         checkOut: dto.checkOut,
         guestCount: dto.guestCount,
         property: rooms[0].roomType.property.name,
-        totalPrice:
-          rooms[0].roomType.price *
-          dto.roomNumber *
-          Math.floor(
-            (dto.checkOut.getTime() - dto.checkIn.getTime()) /
-              (1000 * 3600 * 24)
-          )
+        totalPrice
       }
     );
-    return reservation.id;
+    return {
+      orderId: reservation.id,
+      amount: totalPrice
+    };
   }
 
   async findAll() {
@@ -134,7 +137,8 @@ export class ReservationsService {
                       select: {
                         id: true,
                         name: true,
-                        categoryId: true
+                        categoryId: true,
+                        photos: true
                       }
                     }
                   }
@@ -161,6 +165,7 @@ export class ReservationsService {
     const numberOfRooms = rs.roomReserved.reduce((acc, cur) => {
       return acc + 1;
     }, 0);
+    const { property, ...roomType } = rs.roomReserved[0].room.roomType;
     return {
       user: {
         name: user.name,
@@ -172,8 +177,8 @@ export class ReservationsService {
       checkOut: rs.checkOut,
       status: rs.status,
       specialRequest: rs.specialRequest,
-      property: rs.roomReserved[0].room.roomType.property,
-      roomType: rs.roomReserved[0].room.roomType,
+      property,
+      roomType,
       totalPrice:
         totalPrice *
         Math.floor(
@@ -200,7 +205,8 @@ export class ReservationsService {
                       select: {
                         id: true,
                         name: true,
-                        categoryId: true
+                        categoryId: true,
+                        photos: true
                       }
                     }
                   }
