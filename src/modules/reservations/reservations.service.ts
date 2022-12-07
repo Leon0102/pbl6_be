@@ -132,6 +132,7 @@ export class ReservationsService {
                     price: true,
                     photos: true,
                     bedType: true,
+                    maxGuests: true,
                     size: true,
                     property: {
                       select: {
@@ -184,7 +185,8 @@ export class ReservationsService {
         Math.floor(
           (rs.checkOut.getTime() - rs.checkIn.getTime()) / (1000 * 3600 * 24)
         ),
-      numberOfRooms
+      numberOfRooms,
+      numberOfGuests: rs.guestCount
     };
   }
   async getUserReservation(userId: string) {
