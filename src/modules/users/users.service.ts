@@ -1,19 +1,13 @@
 import { User } from '.prisma/client';
-import {
-  HttpException,
-  HttpStatus,
-  Injectable
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpdateUserDto } from './dto';
+import { ChangePassword, UpdateUserDto } from './dto';
 import { CreateUserDto } from './dto/create-user.dto';
-
+import * as argon from 'argon2';
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   getAllUsers(): Promise<User[]> {
     return this.prisma.user.findMany();
@@ -22,8 +16,8 @@ export class UsersService {
   async getUserByEmail(email: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: {
-        email,
-      },
+        email
+      }
     });
     return user;
   }
@@ -31,8 +25,8 @@ export class UsersService {
   async getUserById(id: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: {
-        id,
-      },
+        id
+      }
     });
     return user;
   }
@@ -41,9 +35,9 @@ export class UsersService {
     if (await this.getUserByEmail(user.email)) {
       throw new HttpException(
         {
-          message: 'Người dùng với email này đã tồn tại',
+          message: 'Người dùng với email này đã tồn tại'
         },
-        HttpStatus.FORBIDDEN,
+        HttpStatus.FORBIDDEN
       );
     }
     const data: Prisma.UserCreateInput = {
@@ -53,12 +47,12 @@ export class UsersService {
       phone: user.phone,
       role: {
         connect: {
-          id: user.role_id,
-        },
-      },
+          id: user.role_id
+        }
+      }
     };
     await this.prisma.user.create({
-      data,
+      data
     });
     return {};
   }
@@ -67,8 +61,8 @@ export class UsersService {
     try {
       const rs = await this.prisma.user.delete({
         where: {
-          id,
-        },
+          id
+        }
       });
       delete rs.password;
       return rs;
@@ -81,34 +75,66 @@ export class UsersService {
     try {
       const rs = await this.prisma.user.update({
         where: {
-          id,
+          id
         },
         data: {
           email: user.email,
           name: user.name,
-          password: user.password,
-          phone: user.phone,
-        },
+          phone: user.phone
+        }
       });
       delete rs.password;
       return rs;
     } catch (err) {
-      console.log(err);
+      throw new HttpException(
+        {
+          message: 'Cập nhật thất bại'
+        },
+        HttpStatus.BAD_REQUEST
+      );
     }
+  }
+  async updatePassword(userId: string, dto: ChangePassword) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    });
+    const pwMatches = await argon.verify(user.password, dto.password);
+    if (!pwMatches) {
+      throw new HttpException(
+        {
+          message: 'Mật khẩu cũ không đúng'
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+    const hashedPassword = await argon.hash(dto.newPassword);
+
+    await this.prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        password: hashedPassword
+      }
+    });
+
+    return {};
   }
   async saveOrUpdateRefreshToken(
     refreshToken: string,
     id: string,
-    refreshTokenExpires: Date,
+    refreshTokenExpires: Date
   ) {
     await this.prisma.user.update({
       where: {
-        id,
+        id
       },
       data: {
         refreshToken,
-        refreshTokenExpiresAt: refreshTokenExpires,
-      },
+        refreshTokenExpiresAt: refreshTokenExpires
+      }
     });
   }
 }
