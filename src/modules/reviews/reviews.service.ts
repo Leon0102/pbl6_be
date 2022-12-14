@@ -3,12 +3,9 @@ import { db } from '../../common/utils/dbClient';
 import { CreateReviewDto } from './dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 
-
-
 @Injectable()
 export class ReviewsService {
   private readonly review = db.review;
-
 
   async createReview(dto: CreateReviewDto) {
     // find property contains reservation
@@ -28,30 +25,32 @@ export class ReviewsService {
             }
           }
         }
-      },
+      }
     });
     // check if reservation is exist
     if (!property) {
       throw new BadRequestException('Reservation is not exist');
     }
-    return this.review.create({
-      data: {
-        content: dto.content,
-        rating: dto.rating,
-        reservation: {
-          connect: {
-            id: dto.reservationId
+    return this.review
+      .create({
+        data: {
+          content: dto.content,
+          rating: dto.rating,
+          reservation: {
+            connect: {
+              id: dto.reservationId
+            }
+          },
+          property: {
+            connect: {
+              id: dto.propertyId
+            }
           }
-        },
-        property: {
-          connect: {
-            id: dto.propertyId
-          }
-        },
-      }
-    }).then(res => {
-      return res;
-    })
+        }
+      })
+      .then(res => {
+        return res;
+      })
       .catch(err => {
         throw new BadRequestException('Review already exist');
       });
@@ -61,6 +60,19 @@ export class ReviewsService {
     return this.review.findMany({
       where: {
         propertyId
+      },
+      include: {
+        reservation: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -88,7 +100,7 @@ export class ReviewsService {
       },
       data: {
         content: dto.content,
-        rating: dto.rating,
+        rating: dto.rating
       }
     });
   }
@@ -100,5 +112,4 @@ export class ReviewsService {
       }
     });
   }
-
 }
