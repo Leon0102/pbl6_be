@@ -121,6 +121,14 @@ export class ReservationsService {
         id
       },
       include: {
+        review: {
+          select: {
+            id: true,
+            content: true,
+            rating: true,
+            createdAt: true
+          }
+        },
         roomReserved: {
           select: {
             room: {
@@ -173,6 +181,7 @@ export class ReservationsService {
         email: user.email,
         phone: user.phone
       },
+      review: rs.review,
       id: rs.id,
       checkIn: rs.checkIn,
       checkOut: rs.checkOut,

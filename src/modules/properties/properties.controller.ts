@@ -1,4 +1,5 @@
 import { GetUser } from '@modules/auth/decorators';
+import { ReviewsService } from '@modules/reviews/reviews.service';
 import {
   Body,
   Controller,
@@ -31,7 +32,17 @@ import { PropertiesService } from './properties.service';
 @Controller('properties')
 @ApiTags('properties')
 export class PropertiesController {
-  constructor(private readonly propertiesService: PropertiesService) {}
+  constructor(
+    private readonly propertiesService: PropertiesService,
+    private readonly reviewsService: ReviewsService
+  ) {}
+
+  @Get(':id/reviews')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get All Reviews Of Property' })
+  async getReviewsOfProperty(@Param('id') id: string) {
+    return this.reviewsService.getReviewsByPropertyId(id);
+  }
 
   @Get('my-properties')
   @HttpCode(HttpStatus.OK)
