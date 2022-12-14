@@ -106,7 +106,7 @@ export class UsersService {
         {
           message: 'Mật khẩu cũ không đúng'
         },
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.BAD_REQUEST
       );
     }
     const hashedPassword = await argon.hash(dto.newPassword);
