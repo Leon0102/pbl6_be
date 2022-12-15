@@ -1,10 +1,16 @@
 import { Categories } from '@common/constants/category-type.enum';
+import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
-import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
+import {
+  CreatePropertyDto,
+  SearchPropertyDto,
+  UpdatePropertyDto,
+  UpdatePropertyVerificationDto
+} from './dto';
 
 @Injectable()
 export class PropertiesService {
@@ -13,6 +19,68 @@ export class PropertiesService {
     private readonly roomTypesService: RoomTypesService,
     private readonly supabaseService: SupabaseService
   ) {}
+
+  async findAll(query: PageOptionsDto) {
+    const { page } = query;
+    try {
+      const properties = await this.properties.findMany({
+        where: {
+          isDeleted: false
+        },
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+          createdAt: true,
+          streetAddress: true,
+          ward: {
+            select: {
+              fullName: true,
+              district: {
+                select: {
+                  fullName: true,
+                  province: {
+                    select: {
+                      name: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+      const result = await Promise.all(
+        properties.map(async prop => {
+          const avgRating = await db.review.aggregate({
+            where: {
+              propertyId: prop.id
+            },
+            _avg: {
+              rating: true
+            }
+          });
+
+          return {
+            ...prop,
+            rating: avgRating._avg.rating
+          };
+        })
+      );
+      const totalPage = Math.ceil(result.length / 10);
+      const totalProperties = result.length;
+      const newResult = result.slice((page - 1) * 10, page * 10);
+      return {
+        properties: newResult,
+        currentPage: page,
+        totalPage: totalPage ? totalPage : 1,
+        totalProperties
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async findOne(id: string) {
     try {
       const prop = await this.properties.findFirst({
@@ -298,6 +366,7 @@ export class PropertiesService {
         }
       },
       where: {
+        isVerified: true,
         OR: [
           {
             ward: {
@@ -415,5 +484,18 @@ export class PropertiesService {
 
   getRoomTypesOfProperty(userId: string, propertyId: string) {
     return this.roomTypesService.getRoomTypesOfProperty(userId, propertyId);
+  }
+
+  async verifyProperty(propertyId: string, dto: UpdatePropertyVerificationDto) {
+    await this.properties.update({
+      where: {
+        id: propertyId
+      },
+      data: {
+        isVerified: dto.verified
+      }
+    });
+
+    return {};
   }
 }

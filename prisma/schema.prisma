@@ -61,6 +61,7 @@ model Property {
   roomCount     Int        @map("room_count")
   photos        String[]
   isDeleted     Boolean    @default(false) @map("is_deleted")
+  isVerified    Boolean    @default(false) @map("is_verified")
   userId        String     @map("user_id")
   categoryId    String     @map("category_id")
   createdAt     DateTime   @default(now()) @map("created_at")

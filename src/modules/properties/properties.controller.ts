@@ -1,3 +1,4 @@
+import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { GetUser } from '@modules/auth/decorators';
 import { ReviewsService } from '@modules/reviews/reviews.service';
 import {
@@ -26,7 +27,12 @@ import {
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
 import { ArrayFilesLimits } from '../../decorators';
-import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
+import {
+  CreatePropertyDto,
+  SearchPropertyDto,
+  UpdatePropertyDto,
+  UpdatePropertyVerificationDto
+} from './dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
@@ -65,6 +71,28 @@ export class PropertiesController {
   })
   async search(@Query() query: SearchPropertyDto) {
     return this.propertiesService.search(query);
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiOperation({ summary: 'Find all properties' })
+  @ApiAcceptedResponse({
+    type: String,
+    description: 'Find all properties'
+  })
+  async findAll(@Query() query: PageOptionsDto) {
+    return this.propertiesService.findAll(query);
+  }
+  @Patch(':id/verification')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiOperation({ summary: 'Verify a property' })
+  async verifyProperty(
+    @Param('id') id: string,
+    @Body() body: UpdatePropertyVerificationDto
+  ) {
+    return this.propertiesService.verifyProperty(id, body);
   }
 
   @Get()
