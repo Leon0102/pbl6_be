@@ -1,4 +1,5 @@
 import { User } from '.prisma/client';
+import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { GetUser } from '@modules/auth/decorators';
 import { ReservationsService } from '@modules/reservations/reservations.service';
 import {
@@ -12,6 +13,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards
 } from '@nestjs/common';
 import {
@@ -52,11 +54,13 @@ export class UsersController {
   async getUserReservation(@GetUser() user: User) {
     return this.reservationsService.getUserReservation(user.id);
   }
+
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Find all users' })
   @Get()
-  getAll() {
-    return this.userService.getAllUsers();
+  getAll(@Query() query: PageOptionsDto) {
+    return this.userService.getAllUsers(query);
   }
 
   @UseGuards(JwtGuard)

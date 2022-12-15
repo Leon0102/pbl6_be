@@ -4,13 +4,37 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePassword, UpdateUserDto } from './dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { db } from '@common/utils/dbClient';
 import * as argon from 'argon2';
+import { PageOptionsDto } from '@common/dto/page-options.dto';
 @Injectable()
 export class UsersService {
+  private readonly users = db.user;
   constructor(private readonly prisma: PrismaService) {}
 
-  getAllUsers(): Promise<User[]> {
-    return this.prisma.user.findMany();
+  async getAllUsers(query: PageOptionsDto) {
+    const { page } = query;
+    try {
+      const result = await this.users.findMany({
+        where: {
+          isDeleted: false,
+          roleId: {
+            not: 'admin'
+          }
+        }
+      });
+      const totalPage = Math.ceil(result.length / 10);
+      const totalProperties = result.length;
+      const newResult = result.slice((page - 1) * 10, page * 10);
+      return {
+        properties: newResult,
+        currentPage: page,
+        totalPage: totalPage ? totalPage : 1,
+        totalProperties
+      };
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getUserByEmail(email: string): Promise<User> {
