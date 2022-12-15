@@ -370,10 +370,14 @@ export class PropertiesService {
     });
     switch (orderBy) {
       case 'price.asc':
-        newResult = newResult.sort((a, b) => a.roomTypes[0].price - b.roomTypes[0].price);
+        newResult = newResult.sort(
+          (a, b) => a.roomTypes[0].price - b.roomTypes[0].price
+        );
         break;
       case 'price.desc':
-        newResult = newResult.sort((a, b) => b.roomTypes[0].price - a.roomTypes[0].price);
+        newResult = newResult.sort(
+          (a, b) => b.roomTypes[0].price - a.roomTypes[0].price
+        );
         break;
       case 'rating.asc':
         newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
@@ -386,16 +390,16 @@ export class PropertiesService {
     }
 
     if (category) {
-      newResult = newResult.filter(
-        property => property.categoryId === category
+      const categoryArr = category.split(',');
+      newResult = newResult.filter(property =>
+        categoryArr.includes(property.categoryId)
       );
     }
-
-    if (startPrice && endPrice) {
-      newResult = newResult.filter(property =>
-        property.roomTypes.filter(
-          roomType => roomType.price >= startPrice && roomType.price <= endPrice
-        )
+    if (startPrice || endPrice) {
+      newResult = newResult.filter(
+        property =>
+          property.roomTypes[0].price >= (startPrice || 0) &&
+          property.roomTypes[0].price <= endPrice
       );
     }
     const totalPage = Math.ceil(newResult.length / 10);
