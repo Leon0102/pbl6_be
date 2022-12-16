@@ -1,36 +1,43 @@
 import { User } from '.prisma/client';
+import { PageOptionsDto } from '@common/dto/page-options.dto';
+import { db } from '@common/utils/dbClient';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as argon from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePassword, UpdateUserDto } from './dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { db } from '@common/utils/dbClient';
-import * as argon from 'argon2';
-import { PageOptionsDto } from '@common/dto/page-options.dto';
 @Injectable()
 export class UsersService {
   private readonly users = db.user;
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllUsers(query: PageOptionsDto) {
-    const { page } = query;
+    const { page, searchKey } = query;
     try {
       const result = await this.users.findMany({
         where: {
           isDeleted: false,
           roleId: {
             not: 'admin'
-          }
+          },
+          OR: [
+            {
+              email: {
+                contains: searchKey
+              }
+            }
+          ]
         }
       });
       const totalPage = Math.ceil(result.length / 10);
-      const totalProperties = result.length;
+      const totalUsers = result.length;
       const newResult = result.slice((page - 1) * 10, page * 10);
       return {
-        properties: newResult,
+        users: newResult,
         currentPage: page,
         totalPage: totalPage ? totalPage : 1,
-        totalProperties
+        totalUsers
       };
     } catch (error) {
       console.log(error);
@@ -83,9 +90,12 @@ export class UsersService {
 
   async deleteUser(id: string): Promise<User> {
     try {
-      const rs = await this.prisma.user.delete({
+      const rs = await this.prisma.user.update({
         where: {
           id
+        },
+        data: {
+          isDeleted: true
         }
       });
       delete rs.password;

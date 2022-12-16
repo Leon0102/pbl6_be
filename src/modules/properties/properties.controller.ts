@@ -1,4 +1,3 @@
-import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { GetUser } from '@modules/auth/decorators';
 import { ReviewsService } from '@modules/reviews/reviews.service';
 import {
@@ -30,9 +29,9 @@ import { ArrayFilesLimits } from '../../decorators';
 import {
   CreatePropertyDto,
   SearchPropertyDto,
-  UpdatePropertyDto,
-  UpdatePropertyVerificationDto
+  UpdatePropertyDto
 } from './dto';
+import { FilterPropertyDto } from './dto/filter-property.dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
@@ -81,7 +80,7 @@ export class PropertiesController {
     type: String,
     description: 'Find all properties'
   })
-  async findAll(@Query() query: PageOptionsDto) {
+  async findAll(@Query() query: FilterPropertyDto) {
     return this.propertiesService.findAll(query);
   }
   @Patch(':id/verification')
@@ -90,12 +89,11 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Verify a property' })
   async verifyProperty(
     @Param('id') id: string,
-    @Body() body: UpdatePropertyVerificationDto
   ) {
-    return this.propertiesService.verifyProperty(id, body);
+    return this.propertiesService.verifyProperty(id);
   }
 
-  @Get()
+  @Get(':propertyId/roomtypes')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.HOST]))
   @ApiOperation({ summary: 'Get Room Types Of properties' })
@@ -105,7 +103,7 @@ export class PropertiesController {
   })
   async getRoomTypesOfProperty(
     @GetUser() user: User,
-    @Query('propertyId') propertyId: string
+    @Param('propertyId') propertyId: string
   ) {
     return this.propertiesService.getRoomTypesOfProperty(user.id, propertyId);
   }
@@ -131,12 +129,12 @@ export class PropertiesController {
     return this.propertiesService.create(user.id, createPropertyDto, files);
   }
 
-  @UseGuards(RoleGuard([RoleType.HOST]))
+  @UseGuards(RoleGuard([RoleType.HOST, RoleType.ADMIN]))
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a property' })
   @HttpCode(HttpStatus.ACCEPTED)
   async remove(@GetUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.propertiesService.remove(user.id, id);
+    return this.propertiesService.remove(user, id);
   }
 
   @UseGuards(RoleGuard([RoleType.HOST]))

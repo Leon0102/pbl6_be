@@ -3,13 +3,12 @@ import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import {
   CreatePropertyDto,
   SearchPropertyDto,
-  UpdatePropertyDto,
-  UpdatePropertyVerificationDto
+  UpdatePropertyDto
 } from './dto';
 
 @Injectable()
@@ -33,6 +32,23 @@ export class PropertiesService {
           isVerified: true,
           createdAt: true,
           streetAddress: true,
+          categoryId: true,
+          roomTypes: {
+            where: {
+              isDeleted: false
+            },
+            orderBy: {
+              price: 'asc'
+            },
+            select: {
+              name: true,
+              price: true,
+              photos: true,
+              maxGuests: true,
+              size: true,
+              bedType: true,
+            }
+          },
           ward: {
             select: {
               fullName: true,
@@ -229,9 +245,11 @@ export class PropertiesService {
     return !!prop;
   }
 
-  async remove(userId: string, id: string) {
-    if (!(await this.checkPropertyOwner(userId, id))) {
-      throw new NotFoundException('Property not found');
+  async remove(user: User, id: string) {
+    if (user.roleId !== 'admin') {
+      if (!(await this.checkPropertyOwner(user.id, id))) {
+        throw new NotFoundException('Property not found');
+      }
     }
     await this.properties.update({
       where: {
@@ -486,13 +504,17 @@ export class PropertiesService {
     return this.roomTypesService.getRoomTypesOfProperty(userId, propertyId);
   }
 
-  async verifyProperty(propertyId: string, dto: UpdatePropertyVerificationDto) {
+  async verifyProperty(propertyId: string) {
     await this.properties.update({
       where: {
         id: propertyId
       },
       data: {
-        isVerified: dto.verified
+        isVerified: !(await this.properties.findFirstOrThrow({
+          where: {
+            id: propertyId
+          }
+        })).isVerified
       }
     });
 
