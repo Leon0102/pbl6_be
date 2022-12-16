@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
 import { Order } from '../constants/order-type.enum';
 export class PageOptionsDto {
     @IsEnum(Order)
@@ -8,6 +8,10 @@ export class PageOptionsDto {
         default: Order.ASC,
     })
     readonly order: Order = Order.ASC;
+
+    @IsString()
+    @ApiPropertyOptional()
+    readonly searchKey: string = '';
 
     @IsNumber()
     @ApiPropertyOptional({

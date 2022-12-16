@@ -9,9 +9,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
-  ParseIntPipe,
-  Patch,
+  Param, Patch,
   Post,
   Query,
   UseGuards
@@ -44,6 +42,15 @@ export class UsersController {
   getMe(@GetUser() user: User) {
     return user;
   }
+
+  @Get(':id')
+  @UseGuards(JwtGuard)
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiBearerAuth()
+  getUserById(@Param('id') id: string) {
+    return this.userService.getUserById(id);
+  }
+
   @Get('me/reservations')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
@@ -72,15 +79,24 @@ export class UsersController {
 
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
-  @Delete('/:id')
-  delete(@Param('id', ParseIntPipe) id: string) {
+  @Delete(':id')
+  delete(@Param('id') id: string) {
     return this.userService.deleteUser(id);
   }
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
+  @UseGuards(RoleGuard([RoleType.GUEST, RoleType.HOST]))
   @Patch('/password')
   updatePassword(@GetUser() user: User, @Body() dto: ChangePassword) {
     return this.userService.updatePassword(user.id, dto);
+  }
+
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.userService.updateUser(id, dto);
   }
 
   @Post('test')

@@ -6,8 +6,3 @@ export class UpdatePropertyDto extends PropertyDto {
   @IsNotEmpty()
   images: string[];
 }
-
-export class UpdatePropertyVerificationDto {
-  @IsNotEmpty()
-  verified: boolean;
-}
