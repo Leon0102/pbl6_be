@@ -5,11 +5,7 @@ import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
-import {
-  CreatePropertyDto,
-  SearchPropertyDto,
-  UpdatePropertyDto
-} from './dto';
+import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 
 @Injectable()
 export class PropertiesService {
@@ -46,7 +42,7 @@ export class PropertiesService {
               photos: true,
               maxGuests: true,
               size: true,
-              bedType: true,
+              bedType: true
             }
           },
           ward: {
@@ -328,12 +324,31 @@ export class PropertiesService {
     };
   }
 
-  getMyProperties(userId: string) {
-    return this.properties.findMany({
+  async getMyProperties(userId: string) {
+    const properties = await this.properties.findMany({
       where: {
-        userId
+        userId,
+        isDeleted: false
+      },
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     });
+    return properties;
   }
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
@@ -510,11 +525,13 @@ export class PropertiesService {
         id: propertyId
       },
       data: {
-        isVerified: !(await this.properties.findFirstOrThrow({
-          where: {
-            id: propertyId
-          }
-        })).isVerified
+        isVerified: !(
+          await this.properties.findFirstOrThrow({
+            where: {
+              id: propertyId
+            }
+          })
+        ).isVerified
       }
     });
 

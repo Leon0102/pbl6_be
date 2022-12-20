@@ -1,63 +1,59 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Min
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  Min
 } from 'class-validator';
 
 import { Facility } from '../interfaces';
 
 export class PropertyDto {
   @ApiProperty({
-    example: 'Da Nang Hotel',
+    example: 'Da Nang Hotel'
   })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsString()
   @IsOptional()
   description: string;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   latitude: number;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   longitude: number;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsString()
   wardCode: string;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsString()
   @IsNotEmpty()
   streetAddress: string;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsObject()
   @IsOptional()
   facilities: Facility;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
   roomCount: number;
 
-  @ApiProperty({
-  })
+  @ApiProperty({})
   @IsString()
   @IsNotEmpty()
   categoryId: string;

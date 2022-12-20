@@ -54,8 +54,8 @@ model Property {
   id            String     @id @default(uuid())
   name          String
   description   String?
-  latitude      Float
-  longitude     Float
+  latitude      Float?
+  longitude     Float?
   wardCode      String     @map("ward_code") @db.VarChar(20)
   streetAddress String     @map("street_address")
   facilities    Json?
