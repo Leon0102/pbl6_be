@@ -11,7 +11,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -45,7 +44,6 @@ export class UsersController {
   getMe(@GetUser() user: User) {
     return user;
   }
-
   @Get('me/reservations')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
@@ -85,15 +83,24 @@ export class UsersController {
 
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
-  @Delete('/:id')
-  delete(@Param('id', ParseIntPipe) id: string) {
+  @Delete(':id')
+  delete(@Param('id') id: string) {
     return this.userService.deleteUser(id);
   }
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
+  @UseGuards(RoleGuard([RoleType.GUEST, RoleType.HOST]))
   @Patch('/password')
   updatePassword(@GetUser() user: User, @Body() dto: ChangePassword) {
     return this.userService.updatePassword(user.id, dto);
+  }
+
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.userService.updateUser(id, dto);
   }
 
   @UseGuards(RoleGuard([RoleType.ADMIN]))
