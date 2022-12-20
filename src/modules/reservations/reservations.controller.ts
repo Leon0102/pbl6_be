@@ -7,13 +7,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
+  Res,
   UseGuards
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { NotificationType, RoleType, User } from '@prisma/client';
-import { NotificationsService } from '../../shared/notification.service';
+import { RoleType, User } from '@prisma/client';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import RoleGuard from '../../guards/roles.guard';
+import { NotificationsService } from '../../shared/notification.service';
 import { VnPayService } from '../../shared/vnpay.service';
 import { GetUser } from '../auth/decorators';
 import { CreateReservationDto } from './dto';
@@ -36,24 +39,18 @@ export class ReservationsController {
     description: 'Get All Reservations'
   })
   @ApiOperation({ summary: 'Get All Reservations' })
-  async findAll() {
-    return this.reservationsService.findAll();
+  async findAll(
+    @Query() query: PageOptionsDto
+  ) {
+    return this.reservationsService.findAll(query);
   }
 
   @Get('vnpay_return')
-  async vnpayReturn(@Req() req: any) {
+  async vnpayReturn(@Req() req: any, @Res() res: any) {
     const result = this.vnPay.vnPayReturn(req);
     if (result.message === 'success') {
-      const { userId, property } =
-        await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
-      this.notificationsService.create({
-        userId,
-        type: NotificationType.PAID_RESERVATION_SUCCESS,
-        context: property
-      });
-      return {
-        message: 'Reservation confirmed'
-      };
+      const rs = await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      res.redirect(`http://localhost:4200/reservations/${rs.id}`);
     }
   }
   @Get(':id')
