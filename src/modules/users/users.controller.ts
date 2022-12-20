@@ -2,6 +2,7 @@ import { User } from '.prisma/client';
 import { AdminNotificationDto } from '@common/dto/create-notification.dto';
 import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { GetUser } from '@modules/auth/decorators';
+import { PropertiesService } from '@modules/properties/properties.service';
 import { ReservationsService } from '@modules/reservations/reservations.service';
 import {
   Body,
@@ -35,7 +36,8 @@ export class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly reservationsService: ReservationsService,
-    private readonly notificationsService: NotificationsService
+    private readonly notificationsService: NotificationsService,
+    private readonly propertiesService: PropertiesService
   ) {}
 
   @Get('me')
@@ -64,6 +66,18 @@ export class UsersController {
   @ApiOperation({ summary: 'Get All Reservations Of Guest' })
   async getUserNotifications(@GetUser() user: User) {
     return this.notificationsService.getUserNotifications(user.id);
+  }
+
+  @Get('me/properties')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.HOST]))
+  @ApiOkResponse({
+    type: String,
+    description: 'Find all properties by host'
+  })
+  @ApiOperation({ summary: 'Find all properties by host' })
+  async getMyProperties(@GetUser() user: User) {
+    return this.propertiesService.getMyProperties(user.id);
   }
 
   @Get()

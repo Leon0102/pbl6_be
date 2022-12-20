@@ -26,11 +26,7 @@ import {
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
 import { ArrayFilesLimits } from '../../decorators';
-import {
-  CreatePropertyDto,
-  SearchPropertyDto,
-  UpdatePropertyDto
-} from './dto';
+import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
 import { PropertiesService } from './properties.service';
 
@@ -47,18 +43,6 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Get All Reviews Of Property' })
   async getReviewsOfProperty(@Param('id') id: string) {
     return this.reviewsService.getReviewsByPropertyId(id);
-  }
-
-  @Get('my-properties')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(RoleGuard([RoleType.HOST]))
-  @ApiOkResponse({
-    type: String,
-    description: 'Find all properties by host'
-  })
-  @ApiOperation({ summary: 'Find all properties by host' })
-  async getMyProperties(@GetUser() user: User) {
-    return this.propertiesService.getMyProperties(user.id);
   }
 
   @Get('filters')
@@ -87,9 +71,7 @@ export class PropertiesController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiOperation({ summary: 'Verify a property' })
-  async verifyProperty(
-    @Param('id') id: string,
-  ) {
+  async verifyProperty(@Param('id') id: string) {
     return this.propertiesService.verifyProperty(id);
   }
 
