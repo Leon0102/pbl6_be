@@ -345,10 +345,25 @@ export class PropertiesService {
               }
             }
           }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
         }
       }
     });
-    return properties;
+    const newResult = properties.map(property => {
+      const avgRating =
+        property.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+        property.reviews.length;
+      delete property.reviews;
+      return {
+        ...property,
+        avgRating
+      };
+    });
+    return newResult;
   }
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
