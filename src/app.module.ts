@@ -4,6 +4,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
+import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { PropertiesModule } from './modules/properties/properties.module';
@@ -44,7 +45,8 @@ import { SharedModule } from './shared/shared.module';
     RoomTypesModule,
     PrismaModule,
     ReservationsModule,
-    ReviewsModule
+    ReviewsModule,
+    AdminModule
   ]
 })
 export class AppModule implements NestModule {

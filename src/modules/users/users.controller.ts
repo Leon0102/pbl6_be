@@ -84,6 +84,7 @@ export class UsersController {
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Find all users' })
+  @Get()
   getAll(@Query() query: PageOptionsDto) {
     return this.userService.getAllUsers(query);
   }
