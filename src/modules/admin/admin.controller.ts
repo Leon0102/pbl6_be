@@ -21,10 +21,12 @@ export class AdminController {
     const total = await this.adminService.getTotal();
     const usersEachMonth = await this.adminService.getUsersEachMonth();
     const propertiesEachCategory = await this.adminService.getPropertiesEachCategory();
+    const amountReservationsEachMonth = await this.adminService.getAmountReservationsEachMonth();
     return {
       total,
       usersEachMonth,
       propertiesEachCategory,
+      amountReservationsEachMonth,
     };
   }
 }

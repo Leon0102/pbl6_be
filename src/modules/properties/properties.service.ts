@@ -566,4 +566,10 @@ export class PropertiesService {
 
     return {};
   }
+
+  test(userId: string, files: Express.Multer.File[], data: any) {
+    return {
+      message: 'Upload file successfully',
+    };
+  }
 }
