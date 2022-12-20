@@ -1,11 +1,15 @@
 import { Categories } from '@common/constants/category-type.enum';
-import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
-import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
+import {
+  CreatePropertyDto,
+  SearchPropertyDto,
+  UpdatePropertyDto
+} from './dto';
+import { FilterPropertyDto } from './dto/filter-property.dto';
 
 @Injectable()
 export class PropertiesService {
@@ -15,12 +19,21 @@ export class PropertiesService {
     private readonly supabaseService: SupabaseService
   ) {}
 
-  async findAll(query: PageOptionsDto) {
-    const { page } = query;
+  async findAll(query: FilterPropertyDto) {
+    const { page, isVerified, searchKey } = query;
     try {
       const properties = await this.properties.findMany({
         where: {
-          isDeleted: false
+          isDeleted: false,
+          isVerified: isVerified === 'true' ? true : isVerified === 'false' ? false : undefined,
+          OR: [
+
+            {
+              name: {
+                contains: searchKey
+              }
+            }
+          ]
         },
         select: {
           id: true,
@@ -62,6 +75,7 @@ export class PropertiesService {
           }
         }
       });
+
       const result = await Promise.all(
         properties.map(async prop => {
           const avgRating = await db.review.aggregate({
