@@ -1,10 +1,11 @@
-import { NotificationsService } from '../../shared/notification.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType, User } from '@prisma/client';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import { db } from '../../common/utils/dbClient';
 import { StatusReservation } from '../../constants';
 import { MailService } from '../../shared/mail.service';
+import { NotificationsService } from '../../shared/notification.service';
 import { RoomsService } from '../rooms/rooms.service';
 import { UsersService } from '../users/users.service';
 import { CreateReservationDto } from './dto';
@@ -71,13 +72,21 @@ export class ReservationsService {
     };
   }
 
-  async findAll() {
-    return await this.reservation.findMany({
+  async findAll(query: PageOptionsDto) {
+    const { page } = query;
+    const reservations = await this.reservation.findMany({
+      skip: (page - 1) * 10,
+      take: 10,
       include: {
-        roomReserved: true,
-        user: true
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
       }
     });
+    return reservations;
   }
 
   async getReservationOfHost(userId: string) {
