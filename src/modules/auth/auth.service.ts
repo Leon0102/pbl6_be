@@ -1,9 +1,6 @@
 import { CreateUserDto } from '@modules/users/dto/create-user.dto';
 import { UsersService } from '@modules/users/users.service';
-import {
-  HttpStatus,
-  Injectable
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { HttpException } from '@nestjs/common/exceptions';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -19,21 +16,21 @@ export class AuthService {
 
     private readonly usersService: UsersService,
     private jwt: JwtService,
-    private config: ConfigService,
+    private config: ConfigService
   ) {}
 
   async login(dto: AuthDto) {
     const user = await this.prisma.user.findUnique({
       where: {
-        email: dto.email,
-      },
+        email: dto.email
+      }
     });
     if (!user) {
       throw new HttpException(
         {
-          message: 'Email hoặc mật khẩu không chính xác',
+          message: 'Email hoặc mật khẩu không chính xác'
         },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED
       );
     }
 
@@ -41,37 +38,40 @@ export class AuthService {
     if (!pwMatches) {
       throw new HttpException(
         {
-          message: 'Email hoặc mật khẩu không chính xác',
+          message: 'Email hoặc mật khẩu không chính xác'
         },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED
       );
     }
     const accessToken = await this.signToken(user.id, user.email, user.roleId);
     const refreshToken = await this.generateRefreshToken(user.id);
+    if (dto.deviceToken) {
+      await this.usersService.saveDeviceToken(user.id, dto.deviceToken);
+    }
     return {
       user: {
         id: user.id,
         email: user.email,
-        roleId: user.roleId,
+        roleId: user.roleId
       },
       token: {
         accessToken,
-        refreshToken,
-      },
+        refreshToken
+      }
     };
   }
 
   async signNewToken(email: string) {
     const user = await this.prisma.user.findUnique({
       where: {
-        email: email,
-      },
+        email: email
+      }
     });
     const accessToken = await this.signToken(user.id, user.email, user.roleId);
     const refreshToken = await this.generateRefreshToken(user.id);
     return {
       accessToken,
-      refreshToken,
+      refreshToken
     };
   }
 
@@ -83,9 +83,9 @@ export class AuthService {
     } catch (err) {
       throw new HttpException(
         {
-          message: err.message,
+          message: err.message
         },
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -94,15 +94,16 @@ export class AuthService {
     const payload = {
       sub: userId,
       email,
-      roleId,
+      roleId
     };
 
     const token = await this.jwt.signAsync(payload, {
       expiresIn: '1d',
-      secret: this.config.get('JWT_SECRET'),
+      secret: this.config.get('JWT_SECRET')
     });
     return token;
   }
+
   async generateRefreshToken(userId: string): Promise<string> {
     const refreshToken = randtoken.generate(32);
     const expirydate = new Date();
@@ -110,7 +111,7 @@ export class AuthService {
     await this.usersService.saveOrUpdateRefreshToken(
       refreshToken,
       userId,
-      expirydate,
+      expirydate
     );
     return refreshToken;
   }

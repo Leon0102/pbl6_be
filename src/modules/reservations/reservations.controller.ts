@@ -11,7 +11,8 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RoleType, User } from '@prisma/client';
+import { NotificationType, RoleType, User } from '@prisma/client';
+import { NotificationsService } from '../../shared/notification.service';
 import RoleGuard from '../../guards/roles.guard';
 import { VnPayService } from '../../shared/vnpay.service';
 import { GetUser } from '../auth/decorators';
@@ -23,7 +24,7 @@ import { ReservationsService } from './reservations.service';
 export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
-
+    private readonly notificationsService: NotificationsService,
     private readonly vnPay: VnPayService
   ) {}
 
@@ -43,7 +44,13 @@ export class ReservationsController {
   async vnpayReturn(@Req() req: any) {
     const result = this.vnPay.vnPayReturn(req);
     if (result.message === 'success') {
-      await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      const { userId, property } =
+        await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      this.notificationsService.create({
+        userId,
+        type: NotificationType.PAID_RESERVATION_SUCCESS,
+        context: property
+      });
       return {
         message: 'Reservation confirmed'
       };

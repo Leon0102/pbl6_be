@@ -171,4 +171,24 @@ export class UsersService {
       }
     });
   }
+
+  async saveDeviceToken(id: string, deviceToken: string) {
+    await this.prisma.user.updateMany({
+      where: {
+        deviceToken
+      },
+      data: {
+        deviceToken: null
+      }
+    });
+    const result = await this.prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        deviceToken
+      }
+    });
+    return result;
+  }
 }

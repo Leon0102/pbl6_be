@@ -1,4 +1,5 @@
 import { User } from '.prisma/client';
+import { AdminNotificationDto } from '@common/dto/create-notification.dto';
 import { PageOptionsDto } from '@common/dto/page-options.dto';
 import { GetUser } from '@modules/auth/decorators';
 import { ReservationsService } from '@modules/reservations/reservations.service';
@@ -9,7 +10,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param, Patch,
+  Param,
+  Patch,
   Post,
   Query,
   UseGuards
@@ -42,15 +44,6 @@ export class UsersController {
   getMe(@GetUser() user: User) {
     return user;
   }
-
-  @Get(':id')
-  @UseGuards(JwtGuard)
-  @UseGuards(RoleGuard([RoleType.ADMIN]))
-  @ApiBearerAuth()
-  getUserById(@Param('id') id: string) {
-    return this.userService.getUserById(id);
-  }
-
   @Get('me/reservations')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RoleGuard([RoleType.GUEST]))
@@ -62,10 +55,21 @@ export class UsersController {
     return this.reservationsService.getUserReservation(user.id);
   }
 
+  @Get('me/notifications')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RoleGuard([RoleType.GUEST]))
+  @ApiOkResponse({
+    description: 'Get All Reservations Of Guest'
+  })
+  @ApiOperation({ summary: 'Get All Reservations Of Guest' })
+  async getUserNotifications(@GetUser() user: User) {
+    return this.notificationsService.getUserNotifications(user.id);
+  }
+
+  @Get()
   @UseGuards(RoleGuard([RoleType.ADMIN]))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Find all users' })
-  @Get()
   getAll(@Query() query: PageOptionsDto) {
     return this.userService.getAllUsers(query);
   }
@@ -99,13 +103,11 @@ export class UsersController {
     return this.userService.updateUser(id, dto);
   }
 
-  @Post('test')
-  async test() {
-    await this.notificationsService.sendFirebaseMessages({
-      title: 'Hoa Nguyen',
-      message: '123123123123',
-      token:
-        'd2oshj1mSAGguiq9gzD88A:APA91bGpOhW0IbMzs3xT8-L-bbWyXdo_we3J2QPRJp7fYGAkkng9sk0Ps16foosqkcuF1S9cJj4fEcAtAWP2u-IO54DjSP4bstxuzmB7_1ZeDQt-1OALG4HVyOFSRzhEP0IYqqPZLUgD'
-    });
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Send notification to all users' })
+  @Post('/notifications')
+  sendNotifications(@Body() dto: AdminNotificationDto) {
+    return this.notificationsService.sendNotificationToAllUsers(dto);
   }
 }

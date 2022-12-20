@@ -1,3 +1,4 @@
+import { NotificationsService } from '../../shared/notification.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType, User } from '@prisma/client';
@@ -14,6 +15,7 @@ export class ReservationsService {
   constructor(
     private readonly roomsService: RoomsService,
     private readonly mailService: MailService,
+    private readonly notificationsService: NotificationsService,
 
     private readonly userService: UsersService
   ) {}
@@ -295,9 +297,25 @@ export class ReservationsService {
       },
       select: {
         status: true,
+        userId: true,
         roomReserved: {
           select: {
-            roomId: true
+            roomId: true,
+            room: {
+              select: {
+                roomType: {
+                  select: {
+                    property: {
+                      select: {
+                        id: true,
+                        name: true,
+                        categoryId: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -325,6 +343,8 @@ export class ReservationsService {
     });
 
     return {
+      userId: reservation.userId,
+      property: reservation.roomReserved[0].room.roomType.property,
       message: 'Confirm reservation success'
     };
   }

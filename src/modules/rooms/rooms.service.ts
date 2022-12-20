@@ -74,7 +74,7 @@ export class RoomsService {
   async getAllRoomsInRoomTypes(roomTypeId: string) {
     return await this.room.findMany({
       where: {
-        roomTypeId: roomTypeId,
+        roomTypeId: roomTypeId
       }
     });
   }
