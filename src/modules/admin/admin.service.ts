@@ -270,4 +270,48 @@ export class AdminService {
       percentAmountReservations,
     };
   }
+
+  async getAmountReservationsEachMonth() {
+    const listAmountReservationsEachMonth = await this.prisma.roomReserved.findMany({
+      select: {
+        createdAt: true,
+        room: {
+          select: {
+            roomType: {
+              select: {
+                price: true,
+              }
+            },
+          },
+        },
+      },
+    });
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const amountReservationsEachMonth = months.map((month) => {
+      const amount = listAmountReservationsEachMonth.filter((item) => {
+        const date = new Date(item.createdAt);
+        return date.getMonth() === months.indexOf(month);
+      }).reduce((acc, item) => acc + item.room.roomType.price, 0);
+      return {
+        month,
+        amount,
+      };
+    });
+
+    return amountReservationsEachMonth;
+  }
 }

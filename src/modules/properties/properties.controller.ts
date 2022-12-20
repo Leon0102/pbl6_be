@@ -132,4 +132,17 @@ export class PropertiesController {
   ) {
     return this.propertiesService.update(user.id, id, updatePropertyDto, files);
   }
+
+  @UseGuards(RoleGuard([RoleType.HOST]))
+  @Post('test')
+  @ApiOperation({ summary: 'Test upload' })
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseInterceptors(FilesInterceptor('files'))
+  async test(
+    @GetUser() user: User,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() data: any,
+  ) {
+    return this.propertiesService.test(user.id, files, data);
+  }
 }
