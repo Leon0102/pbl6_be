@@ -305,6 +305,7 @@ export class ReservationsService {
         id
       },
       select: {
+        id: true,
         status: true,
         userId: true,
         roomReserved: {
@@ -352,6 +353,7 @@ export class ReservationsService {
     });
 
     return {
+      id: reservation.id,
       userId: reservation.userId,
       property: reservation.roomReserved[0].room.roomType.property,
       message: 'Confirm reservation success'
