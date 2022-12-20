@@ -123,7 +123,7 @@ export class PropertiesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a property' })
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseInterceptors(FilesInterceptor('files'))
+  @ArrayFilesLimits(10)
   async update(
     @GetUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
