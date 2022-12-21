@@ -118,7 +118,7 @@ export class PropertiesController {
   @UseGuards(RoleGuard([RoleType.HOST]))
   @Post(':id/room-types')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a property' })
+  @ApiOperation({ summary: 'Create a roomType for property' })
   @ArrayFilesLimits(30)
   async createRoomType(
     @GetUser() user: User,
