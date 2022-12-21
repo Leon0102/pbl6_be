@@ -270,7 +270,9 @@ export class PropertiesService {
     });
 
     currProperty.photos.forEach(async image => {
-      await this.supabaseService.deleteFile(image);
+      if (!property.images.includes(image)) {
+        await this.supabaseService.deleteFile(image);
+      }
     });
 
     property.images = await Promise.all(

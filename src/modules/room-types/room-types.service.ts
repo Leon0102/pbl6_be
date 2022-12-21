@@ -127,7 +127,9 @@ export class RoomTypesService {
 
     // delete old images
     roomTypeBelongsToUser.photos.forEach(async image => {
-      await this.supabaseService.deleteFile(image);
+      if (!roomType.images.includes(image)) {
+        await this.supabaseService.deleteFile(image);
+      }
     });
 
     // upload images to cloudinary
