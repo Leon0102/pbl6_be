@@ -21,13 +21,14 @@ import { VnPayService } from '../../shared/vnpay.service';
 import { GetUser } from '../auth/decorators';
 import { CreateReservationDto } from './dto';
 import { ReservationsService } from './reservations.service';
-
+import { ConfigService } from '@nestjs/config';
 @Controller('reservations')
 @ApiTags('reservations')
 export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
     private readonly notificationsService: NotificationsService,
+    private config: ConfigService,
     private readonly vnPay: VnPayService
   ) {}
 
@@ -39,9 +40,7 @@ export class ReservationsController {
     description: 'Get All Reservations'
   })
   @ApiOperation({ summary: 'Get All Reservations' })
-  async findAll(
-    @Query() query: PageOptionsDto
-  ) {
+  async findAll(@Query() query: PageOptionsDto) {
     return this.reservationsService.findAll(query);
   }
 
@@ -49,8 +48,10 @@ export class ReservationsController {
   async vnpayReturn(@Req() req: any, @Res() res: any) {
     const result = this.vnPay.vnPayReturn(req);
     if (result.message === 'success') {
-      const rs = await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
-      res.redirect(`http://localhost:4200/reservations/${rs.id}`);
+      const rs = await this.reservationsService.confirmReservation(
+        req.query.vnp_TxnRef
+      );
+      res.redirect(`${this.config.get('FE_DOMAIN')}/reservations/${rs.id}`);
     }
   }
   @Get(':id')
