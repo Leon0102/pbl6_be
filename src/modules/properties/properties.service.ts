@@ -279,6 +279,8 @@ export class PropertiesService {
           return await this.supabaseService.uploadFile(
             files.find(file => file.originalname === image)
           );
+        } else {
+          return image;
         }
       })
     );
