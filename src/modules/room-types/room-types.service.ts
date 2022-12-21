@@ -125,23 +125,23 @@ export class RoomTypesService {
       throw new BadRequestException('Room type does not belong to user');
     }
 
-    if (files.length > 0) {
-      // delete old images
-      roomTypeBelongsToUser.photos.forEach(async image => {
-        await this.supabaseService.deleteFile(image);
-      });
+    // delete old images
+    roomTypeBelongsToUser.photos.forEach(async image => {
+      await this.supabaseService.deleteFile(image);
+    });
 
-      // upload images to cloudinary
-      const images = await Promise.all(
-        roomType.images.map(async image => {
-          if (files.find(file => file.originalname === image)) {
-            return await this.supabaseService.uploadFile(
-              files.find(file => file.originalname === image)
-            );
-          }
-        })
-      );
-    }
+    // upload images to cloudinary
+    const images = await Promise.all(
+      roomType.images.map(async image => {
+        if (files.find(file => file.originalname === image)) {
+          return await this.supabaseService.uploadFile(
+            files.find(file => file.originalname === image)
+          );
+        } else {
+          return image;
+        }
+      })
+    );
 
     await this.roomTypes.update({
       where: {
@@ -153,6 +153,7 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
+        photos: images,
         size: {
           ...roomType.size
         },

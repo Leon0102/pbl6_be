@@ -23,7 +23,7 @@ import {
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from '../../guards/roles.guard';
 import { GetUser } from '../auth/decorators';
-import { CreateRoomTypeDto } from './dto/create-room-type.dto';
+import { UpdateRoomTypeDto } from './dto';
 import { RoomTypesService } from './room-types.service';
 
 @Controller('room-types')
@@ -68,7 +68,7 @@ export class RoomTypesController {
   async updateRoomType(
     @GetUser() user: User,
     @Param('id') id: string,
-    @Body() roomType: any,
+    @Body() roomType: UpdateRoomTypeDto,
     @UploadedFiles() files: Express.Multer.File[]
   ) {
     return await this.roomTypesService.update(user.id, id, roomType, files);
