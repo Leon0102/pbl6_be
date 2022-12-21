@@ -56,29 +56,6 @@ export class RoomTypesController {
     return await this.roomTypesService.getAllRoomsInRoomTypes(id);
   }
 
-  @UseGuards(RoleGuard([RoleType.HOST]))
-  @Post()
-  @ApiOkResponse({
-    type: String,
-    description: 'Create room type'
-  })
-  @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FilesInterceptor('files'))
-  @ApiOperation({ summary: 'Create room type' })
-  async createRoomType(
-    @GetUser() user: User,
-    @Query('propertyId') propertyId: string,
-    @Body() roomType: CreateRoomTypeDto,
-    @UploadedFiles() files: Express.Multer.File[]
-  ) {
-    return await this.roomTypesService.createRoomType(
-      user.id,
-      propertyId,
-      roomType,
-      files
-    );
-  }
-
   @Patch(':id')
   @ApiAcceptedResponse({
     type: String,
