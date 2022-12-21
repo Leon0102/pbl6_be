@@ -13,7 +13,7 @@ import {
   Query,
   UploadedFiles,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -21,7 +21,7 @@ import {
   ApiAcceptedResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiTags
+  ApiTags,
 } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
@@ -50,7 +50,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Search properties' })
   @ApiAcceptedResponse({
     type: String,
-    description: 'Search properties by page'
+    description: 'Search properties by page',
   })
   async search(@Query() query: SearchPropertyDto) {
     return this.propertiesService.search(query);
@@ -62,7 +62,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Find all properties' })
   @ApiAcceptedResponse({
     type: String,
-    description: 'Find all properties'
+    description: 'Find all properties',
   })
   async findAll(@Query() query: FilterPropertyDto) {
     return this.propertiesService.findAll(query);
@@ -81,7 +81,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Get Room Types Of properties' })
   @ApiOkResponse({
     type: String,
-    description: 'Get Room Types Of properties'
+    description: 'Get Room Types Of properties',
   })
   async getRoomTypesOfProperty(
     @GetUser() user: User,
@@ -141,7 +141,7 @@ export class PropertiesController {
   async test(
     @GetUser() user: User,
     @UploadedFiles() files: Express.Multer.File[],
-    @Body() data: any,
+    @Body() data: any
   ) {
     return this.propertiesService.test(user.id, files, data);
   }
