@@ -4,11 +4,7 @@ import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
-import {
-  CreatePropertyDto,
-  SearchPropertyDto,
-  UpdatePropertyDto
-} from './dto';
+import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
 
 @Injectable()
@@ -25,9 +21,13 @@ export class PropertiesService {
       const properties = await this.properties.findMany({
         where: {
           isDeleted: false,
-          isVerified: isVerified === 'true' ? true : isVerified === 'false' ? false : undefined,
+          isVerified:
+            isVerified === 'true'
+              ? true
+              : isVerified === 'false'
+              ? false
+              : undefined,
           OR: [
-
             {
               name: {
                 contains: searchKey
@@ -60,12 +60,15 @@ export class PropertiesService {
           },
           ward: {
             select: {
+              code: true,
               fullName: true,
               district: {
                 select: {
+                  code: true,
                   fullName: true,
                   province: {
                     select: {
+                      code: true,
                       name: true
                     }
                   }
@@ -117,12 +120,15 @@ export class PropertiesService {
         include: {
           ward: {
             select: {
+              code: true,
               fullName: true,
               district: {
                 select: {
+                  code: true,
                   fullName: true,
                   province: {
                     select: {
+                      code: true,
                       name: true
                     }
                   }
@@ -347,12 +353,15 @@ export class PropertiesService {
       include: {
         ward: {
           select: {
+            code: true,
             fullName: true,
             district: {
               select: {
+                code: true,
                 fullName: true,
                 province: {
                   select: {
+                    code: true,
                     name: true
                   }
                 }
@@ -569,7 +578,7 @@ export class PropertiesService {
 
   test(userId: string, files: Express.Multer.File[], data: any) {
     return {
-      message: 'Upload file successfully',
+      message: 'Upload file successfully'
     };
   }
 }
