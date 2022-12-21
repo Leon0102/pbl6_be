@@ -2,7 +2,7 @@ import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, Property, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
@@ -181,7 +181,7 @@ export class PropertiesService {
     userId: string,
     property: CreatePropertyDto,
     files: Express.Multer.File[]
-  ): Promise<boolean> {
+  ): Promise<Property> {
     property.images = await Promise.all(
       property.images.map(async image => {
         if (files.find(file => file.originalname === image)) {
@@ -191,64 +191,36 @@ export class PropertiesService {
         }
       })
     );
-
-    property.roomTypes = await Promise.all(
-      property.roomTypes.map(async roomType => {
-        roomType.images = await Promise.all(
-          roomType.images.map(async image => {
-            if (files.find(file => file.originalname === image)) {
-              return await this.supabaseService.uploadFile(
-                files.find(file => file.originalname === image)
-              );
-            }
-          })
-        );
-        return roomType;
-      })
-    );
-
-    await db.$transaction(async (tx: Prisma.TransactionClient) => {
-      const prop = await tx.property.create({
-        data: {
-          name: property.name,
-          description: property.description,
-          latitude: property.latitude,
-          longitude: property.longitude,
-          streetAddress: property.streetAddress,
-          facilities: {
-            ...property.facilities
-          },
-          roomCount: property.roomCount,
-          user: {
-            connect: {
-              id: userId
-            }
-          },
-          ward: {
-            connect: {
-              code: property.wardCode
-            }
-          },
-          photos: property.images,
-          category: {
-            connect: {
-              id: Categories[property.categoryId]
-            }
+    const prop = await this.properties.create({
+      data: {
+        name: property.name,
+        description: property.description,
+        latitude: property.latitude,
+        longitude: property.longitude,
+        streetAddress: property.streetAddress,
+        facilities: {
+          ...property.facilities
+        },
+        roomCount: property.roomCount,
+        user: {
+          connect: {
+            id: userId
+          }
+        },
+        ward: {
+          connect: {
+            code: property.wardCode
+          }
+        },
+        photos: property.images,
+        category: {
+          connect: {
+            id: Categories[property.categoryId]
           }
         }
-      });
-      try {
-        this.roomTypesService.createMany(prop.id, property.roomTypes);
-      } catch (error) {
-        await db.property.delete({
-          where: {
-            id: prop.id
-          }
-        });
-        return false;
       }
     });
-    return true;
+    return prop;
   }
 
   async checkPropertyOwner(userId: string, propertyId: string) {

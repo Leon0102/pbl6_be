@@ -1,5 +1,7 @@
 import { GetUser } from '@modules/auth/decorators';
 import { ReviewsService } from '@modules/reviews/reviews.service';
+import { CreateRoomTypeDto } from '@modules/room-types/dto';
+import { RoomTypesService } from '@modules/room-types/room-types.service';
 import {
   Body,
   Controller,
@@ -13,7 +15,7 @@ import {
   Query,
   UploadedFiles,
   UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -21,13 +23,14 @@ import {
   ApiAcceptedResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
 import { ArrayFilesLimits } from '../../decorators';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
+import { PropertyDto } from './dto/property.dto';
 import { PropertiesService } from './properties.service';
 
 @Controller('properties')
@@ -35,6 +38,7 @@ import { PropertiesService } from './properties.service';
 export class PropertiesController {
   constructor(
     private readonly propertiesService: PropertiesService,
+    private readonly roomTypesService: RoomTypesService,
     private readonly reviewsService: ReviewsService
   ) {}
 
@@ -50,7 +54,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Search properties' })
   @ApiAcceptedResponse({
     type: String,
-    description: 'Search properties by page',
+    description: 'Search properties by page'
   })
   async search(@Query() query: SearchPropertyDto) {
     return this.propertiesService.search(query);
@@ -62,7 +66,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Find all properties' })
   @ApiAcceptedResponse({
     type: String,
-    description: 'Find all properties',
+    description: 'Find all properties'
   })
   async findAll(@Query() query: FilterPropertyDto) {
     return this.propertiesService.findAll(query);
@@ -81,7 +85,7 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Get Room Types Of properties' })
   @ApiOkResponse({
     type: String,
-    description: 'Get Room Types Of properties',
+    description: 'Get Room Types Of properties'
   })
   async getRoomTypesOfProperty(
     @GetUser() user: User,
@@ -109,6 +113,25 @@ export class PropertiesController {
     @UploadedFiles() files: Express.Multer.File[]
   ) {
     return this.propertiesService.create(user.id, createPropertyDto, files);
+  }
+
+  @UseGuards(RoleGuard([RoleType.HOST]))
+  @Post(':id/room-types')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a roomType for property' })
+  @ArrayFilesLimits(30)
+  async createRoomType(
+    @GetUser() user: User,
+    @Body() createRoomTypeDto: CreateRoomTypeDto,
+    @Param('id') propertyId: string,
+    @UploadedFiles() files: Express.Multer.File[]
+  ) {
+    return this.roomTypesService.create(
+      user.id,
+      propertyId,
+      createRoomTypeDto,
+      files
+    );
   }
 
   @UseGuards(RoleGuard([RoleType.HOST, RoleType.ADMIN]))
