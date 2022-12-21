@@ -3,7 +3,8 @@ import { RoomsService } from '@modules/rooms/rooms.service';
 import {
   BadRequestException,
   Injectable,
-  NotFoundException
+  NotFoundException,
+  ParseUUIDPipe
 } from '@nestjs/common';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto';
@@ -48,48 +49,6 @@ export class RoomTypesService {
   }
 
   async create(
-    userId: string,
-    propertyId: string,
-    roomType: CreateRoomTypeDto,
-    files: Express.Multer.File[]
-  ) {
-    // check if property belongs to user
-    const propertyBelongsToUser = await db.property.findFirst({
-      where: {
-        id: propertyId,
-        userId
-      }
-    });
-
-    if (!propertyBelongsToUser) {
-      throw new NotFoundException('Property not found');
-    }
-
-    await db.roomType.create({
-      data: {
-        name: roomType.name,
-        description: roomType.description,
-        price: roomType.price,
-        roomCount: roomType.roomCount,
-        maxGuests: roomType.maxGuests,
-        bedType: roomType.bedType,
-        size: {
-          ...roomType.size
-        },
-        facilities: {
-          ...roomType.facilities
-        },
-        propertyId,
-        rooms: {
-          createMany: {
-            data: Array.from({ length: roomType.roomCount }).map(() => ({}))
-          }
-        }
-      }
-    });
-  }
-
-  async createRoomType(
     userId: string,
     propertyId: string,
     roomType: CreateRoomTypeDto,
