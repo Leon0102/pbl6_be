@@ -5,7 +5,7 @@ const CREATE_RESERVATION = {
     checkIn: string,
     checkOut: string,
     guestCount: string,
-    totalPrice: string,
+    totalPrice: string
   ): string {
     return `<!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -180,7 +180,7 @@ const CREATE_RESERVATION = {
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#637381;">Hi {{username}},</div>
+                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#637381;">Hi ${username},</div>
                                 </td>
                               </tr>
                               <tr>
