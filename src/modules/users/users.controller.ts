@@ -89,6 +89,14 @@ export class UsersController {
     return this.userService.getAllUsers(query);
   }
 
+  @Get(':id')
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Find user by id' })
+  getOne(@Param('id') id: string) {
+    return this.userService.getUserById(id);
+  }
+
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
   @Patch('')

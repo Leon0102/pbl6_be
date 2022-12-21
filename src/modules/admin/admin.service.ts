@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -153,20 +154,39 @@ export class AdminService {
   async getTotal() {
     const totalUsers = await this.prisma.user.count();
     const totalProperties = await this.prisma.property.count();
-    const totalAmountReservations = await (await this.prisma.roomReserved.findMany({
-      select: {
-        room: {
-          select: {
-            roomType: {
-              select: {
-                price: true,
-              }
-            },
-          },
+    const totalAmountReservations = (
+      await this.prisma.reservation.findMany({
+        where: {
+          status: ReservationStatus.CONFIRMED
         },
-      }
-    })
-    ).reduce((acc, item) => acc + item.room.roomType.price, 0);
+        include: {
+          roomReserved: {
+            select: {
+              room: {
+                select: {
+                  id: true,
+                  roomType: {
+                    select: {
+                      price: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
+    ).reduce(
+      (acc, item) =>
+        acc +
+        item.roomReserved[0].room.roomType.price *
+        item.roomReserved.length *
+        Math.floor(
+          (item.checkOut.getTime() - item.checkIn.getTime()) /
+          (1000 * 3600 * 24)
+        ),
+      0
+    );
     const percents = await this.getPercents();
     return {
       totalUsers,
@@ -210,7 +230,7 @@ export class AdminService {
       },
     });
 
-    const totalAmountReservationsThisMonth = await (await this.prisma.roomReserved.findMany({
+    const totalAmountReservationsThisMonth = (await this.prisma.roomReserved.findMany({
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -272,19 +292,26 @@ export class AdminService {
   }
 
   async getAmountReservationsEachMonth() {
-    const listAmountReservationsEachMonth = await this.prisma.roomReserved.findMany({
-      select: {
-        createdAt: true,
-        room: {
-          select: {
-            roomType: {
-              select: {
-                price: true,
-              }
-            },
-          },
-        },
+    const listAmountReservationsEachMonth = await this.prisma.reservation.findMany({
+      where: {
+        status: ReservationStatus.CONFIRMED
       },
+      include: {
+        roomReserved: {
+          select: {
+            room: {
+              select: {
+                id: true,
+                roomType: {
+                  select: {
+                    price: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
     const months = [
       'January',
@@ -302,10 +329,17 @@ export class AdminService {
     ];
 
     const amountReservationsEachMonth = months.map((month) => {
-      const amount = listAmountReservationsEachMonth.filter((item) => {
-        const date = new Date(item.createdAt);
-        return date.getMonth() === months.indexOf(month);
-      }).reduce((acc, item) => acc + item.room.roomType.price, 0);
+      const amount = listAmountReservationsEachMonth.map((item) => {
+        if (item.checkIn.getMonth() === months.indexOf(month)) {
+          return item.roomReserved[0].room.roomType.price *
+            item.roomReserved.length *
+            Math.floor(
+              (item.checkOut.getTime() - item.checkIn.getTime()) /
+              (1000 * 3600 * 24)
+            );
+        }
+        return 0;
+      }).reduce((acc, item) => acc + item, 0);
       return {
         month,
         amount,
