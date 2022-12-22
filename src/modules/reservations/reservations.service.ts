@@ -1,3 +1,4 @@
+import { getReservationPrice } from '@common/utils/utils';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType, User } from '@prisma/client';
@@ -178,13 +179,8 @@ export class ReservationsService {
       throw new NotFoundException('Not found reservation');
     }
 
-    const totalPrice = rs.roomReserved.reduce((acc, cur) => {
-      return acc + cur.room.roomType.price;
-    }, 0);
+    const numberOfRooms = rs.roomReserved.length;
 
-    const numberOfRooms = rs.roomReserved.reduce((acc, cur) => {
-      return acc + 1;
-    }, 0);
     const { property, ...roomType } = rs.roomReserved[0].room.roomType;
     return {
       user: {
@@ -200,11 +196,12 @@ export class ReservationsService {
       specialRequest: rs.specialRequest,
       property,
       roomType,
-      totalPrice:
-        totalPrice *
-        Math.floor(
-          (rs.checkOut.getTime() - rs.checkIn.getTime()) / (1000 * 3600 * 24)
-        ),
+      totalPrice: getReservationPrice(
+        rs.checkOut,
+        rs.checkIn,
+        rs.roomReserved[0].room.roomType.price,
+        numberOfRooms
+      ),
       numberOfRooms,
       numberOfGuests: rs.guestCount
     };
@@ -244,9 +241,12 @@ export class ReservationsService {
     });
     // count total price  of reservation
     const result = rs.map(reservation => {
-      const totalPrice = reservation.roomReserved.reduce((acc, cur) => {
-        return acc + cur.room.roomType.price;
-      }, 0);
+      const totalPrice = getReservationPrice(
+        reservation.checkOut,
+        reservation.checkIn,
+        reservation.roomReserved[0].room.roomType.price,
+        reservation.roomReserved.length
+      );
       return {
         id: reservation.id,
         checkIn: reservation.checkIn,
