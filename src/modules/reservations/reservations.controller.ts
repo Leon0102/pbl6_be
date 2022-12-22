@@ -13,7 +13,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RoleType, User } from '@prisma/client';
+import { NotificationType, RoleType, User } from '@prisma/client';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import RoleGuard from '../../guards/roles.guard';
 import { NotificationsService } from '../../shared/notification.service';
@@ -48,10 +48,14 @@ export class ReservationsController {
   async vnpayReturn(@Req() req: any, @Res() res: any) {
     const result = this.vnPay.vnPayReturn(req);
     if (result.message === 'success') {
-      const rs = await this.reservationsService.confirmReservation(
-        req.query.vnp_TxnRef
-      );
-      res.redirect(`${this.config.get('FE_DOMAIN')}/reservations/${rs.id}`);
+      const { id, userId, property } =
+        await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
+      this.notificationsService.create({
+        userId,
+        type: NotificationType.PAID_RESERVATION_SUCCESS,
+        context: property
+      });
+      res.redirect(`${this.config.get('FE_DOMAIN')}/reservations/${id}`);
     }
   }
   @Get(':id')
