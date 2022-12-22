@@ -155,6 +155,7 @@ export class RoomTypesService {
         price: roomType.price,
         roomCount: roomType.roomCount,
         maxGuests: roomType.maxGuests,
+        bedType: roomType.bedType,
         photos: images,
         size: {
           ...roomType.size
