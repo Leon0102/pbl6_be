@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ReservationStatus } from '@prisma/client';
+import { NotificationType, ReservationStatus } from '@prisma/client';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -347,5 +348,34 @@ export class AdminService {
     });
 
     return amountReservationsEachMonth;
+  }
+
+  async getNotificationsFromAdmin(options: PageOptionsDto) {
+    const { page } = options;
+    const notifications = await this.prisma.notification.findMany({
+      where: {
+        type: NotificationType.FROM_ADMIN,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    const result = notifications.map((item) => {
+      return {
+        id: item.id,
+        title: JSON.parse(JSON.stringify(item.context)).title,
+        body: JSON.parse(JSON.stringify(item.context)).body,
+        createdAt: item.createdAt,
+      };
+    });
+    const totalPage = Math.ceil(result.length / 4);
+    const totalUsers = result.length;
+    const newResult = result.slice((page - 1) * 4, page * 4);
+    return {
+      notifications: newResult,
+      totalPage,
+      totalUsers,
+      currentPage: page,
+    };
   }
 }

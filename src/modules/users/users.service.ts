@@ -13,7 +13,7 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllUsers(query: SearchUserDto) {
-    const { page, searchKey, startDate, endDate, } = query;
+    const { page, searchKey, startDate, endDate, order, sortBy } = query;
     try {
       let result = await this.users.findMany({
         where: {
@@ -40,6 +40,17 @@ export class UsersService {
           return date >= startDate && date <= endDate;
         });
       }
+
+      if (sortBy && order) {
+        result = result.sort((a, b) => {
+          if (order === 'ASC') {
+            return a[sortBy] > b[sortBy] ? 1 : -1;
+          } else {
+            return a[sortBy] < b[sortBy] ? 1 : -1;
+          }
+        });
+      }
+
       const totalPage = Math.ceil(result.length / 10);
       const totalUsers = result.length;
       const newResult = result.slice((page - 1) * 10, page * 10);
