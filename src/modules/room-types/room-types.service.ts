@@ -238,9 +238,13 @@ export class RoomTypesService {
   ) {
     const guestsEachRoom = Math.ceil(numberOfGuests / numberOfRoom);
     const rs = await this.roomTypes.findMany({
+      where: {
+        isDeleted: false
+      },
       select: {
         id: true,
         name: true,
+        price: true,
         roomCount: true,
         maxGuests: true,
         rooms: {
@@ -303,6 +307,7 @@ export class RoomTypesService {
       .map(r => ({
         id: r.id,
         name: r.name,
+        price: r.price,
         maxGuests: r.maxGuests,
         roomsCount: r.roomCount,
         roomsAvailable: r.rooms.length,

@@ -142,18 +142,6 @@ export class PropertiesService {
             },
             orderBy: {
               price: 'asc'
-            },
-            include: {
-              _count: {
-                select: {
-                  rooms: {
-                    where: {
-                      isDeleted: false,
-                      status: 'AVAILABLE'
-                    }
-                  }
-                }
-              }
             }
           }
         }
@@ -187,7 +175,6 @@ export class PropertiesService {
         checkOut,
         id
       );
-    console.log(roomTypesAvailable);
     const property = await this.properties.findFirst({
       where: {
         id,
@@ -432,7 +419,7 @@ export class PropertiesService {
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
-  async search(search: SearchPropertyDto) {
+  async searchABC(search: SearchPropertyDto) {
     const {
       location,
       checkIn,
@@ -623,7 +610,7 @@ export class PropertiesService {
     };
   }
 
-  async searchTest(search: SearchPropertyDto) {
+  async search(search: SearchPropertyDto) {
     const {
       location,
       checkIn,
@@ -636,102 +623,142 @@ export class PropertiesService {
       startPrice,
       endPrice
     } = search;
-    // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
-    // const properties = await this.properties.findMany({
-    //   include: {
-    //     ward: {
-    //       select: {
-    //         fullName: true,
-    //         district: {
-    //           select: {
-    //             fullName: true,
-    //             province: {
-    //               select: {
-    //                 name: true
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     },
-    //     roomTypes: {
-    //       select: {
-    //         price: true
-    //       },
-    //       orderBy: {
-    //         price: 'asc'
-    //       }
-    //     }
-    //   },
-    //   where: {
-    //     isVerified: true,
-    //     OR: [
-    //       {
-    //         ward: {
-    //           code: location
-    //         }
-    //       },
-    //       {
-    //         ward: {
-    //           district: {
-    //             code: location
-    //           }
-    //         }
-    //       },
-    //       {
-    //         ward: {
-    //           district: {
-    //             province: {
-    //               code: location
-    //             }
-    //           }
-    //         }
-    //       }
-    //     ],
-    //     roomTypes: {
-    //       some: {
-    //         maxGuests: {
-    //           gte: guests
-    //         }
-    //       }
-    //     },
-    //     roomCount: {
-    //       gte: rooms
-    //     },
-    //     NOT: {
-    //       roomTypes: {
-    //         some: {
-    //           rooms: {
-    //             some: {
-    //               roomReserved: {
-    //                 some: {
-    //                   reservation: {
-    //                     checkIn: {
-    //                       lte: checkOut
-    //                     },
-    //                     checkOut: {
-    //                       gte: checkIn
-    //                     }
-    //                   }
-    //                 }
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     }
-    //   },
-    //   orderBy: {
-    //     updatedAt: 'desc'
-    //   }
-    // });
-    await this.roomTypesService.getListRoomTypesAvailable(
-      guests,
-      rooms,
-      checkIn,
-      checkOut
-    );
 
-    return {};
+    const roomTypesAvailable =
+      await this.roomTypesService.getListRoomTypesAvailable(
+        guests,
+        rooms,
+        checkIn,
+        checkOut
+      );
+    // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
+    const properties = await this.properties.findMany({
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
+        roomTypes: {
+          select: {
+            id: true,
+            price: true
+          },
+          orderBy: {
+            price: 'asc'
+          }
+        }
+      },
+      where: {
+        id: {
+          in: roomTypesAvailable.map(roomType => roomType.property.id)
+        },
+        isVerified: true,
+        OR: [
+          {
+            ward: {
+              code: location
+            }
+          },
+          {
+            ward: {
+              district: {
+                code: location
+              }
+            }
+          },
+          {
+            ward: {
+              district: {
+                province: {
+                  code: location
+                }
+              }
+            }
+          }
+        ]
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+    const mappedProperties = properties.map(property => ({
+      ...property,
+      roomTypes: property.roomTypes.filter(roomType => {
+        const roomTypeAvailable = roomTypesAvailable.find(
+          roomTypeAvailable => roomTypeAvailable.id === roomType.id
+        );
+        return roomTypeAvailable;
+      })
+    }));
+
+    let newResult = mappedProperties.map(property => {
+      let avgRating =
+        property.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+        property.reviews.length;
+      delete property.reviews;
+      return {
+        ...property,
+        avgRating
+      };
+    });
+    switch (orderBy) {
+      case 'price.asc':
+        newResult = newResult.sort(
+          (a, b) => a.roomTypes[0].price - b.roomTypes[0].price
+        );
+        break;
+      case 'price.desc':
+        newResult = newResult.sort(
+          (a, b) => b.roomTypes[0].price - a.roomTypes[0].price
+        );
+        break;
+      case 'rating.asc':
+        newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
+        break;
+      case 'rating.desc':
+        newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
+        break;
+      default:
+        break;
+    }
+
+    if (category) {
+      const categoryArr = category.split(',');
+      newResult = newResult.filter(property =>
+        categoryArr.includes(property.categoryId)
+      );
+    }
+    if (startPrice || endPrice) {
+      newResult = newResult.filter(
+        property =>
+          property.roomTypes[0].price >= (startPrice || 0) &&
+          property.roomTypes[0].price <= endPrice
+      );
+    }
+    const totalPage = Math.ceil(newResult.length / 10);
+    const totalProperties = newResult.length;
+    const result = newResult.slice((page - 1) * 10, page * 10);
+    return {
+      currentPage: page,
+      totalPage: totalPage ? totalPage : 1,
+      totalProperties,
+      properties: result
+    };
   }
 }
