@@ -179,6 +179,67 @@ export class PropertiesService {
 
   async findDetailsForGuest(id: string, query: SearchPropertyDto) {
     const { checkIn, checkOut, rooms, guests } = query;
+    const roomTypesAvailable =
+      await this.roomTypesService.getListRoomTypesAvailable(
+        guests,
+        rooms,
+        checkIn,
+        checkOut,
+        id
+      );
+    console.log(roomTypesAvailable);
+    const property = await this.properties.findFirst({
+      where: {
+        id,
+        isDeleted: false
+      },
+      include: {
+        ward: {
+          select: {
+            code: true,
+            fullName: true,
+            district: {
+              select: {
+                code: true,
+                fullName: true,
+                province: {
+                  select: {
+                    code: true,
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        roomTypes: {
+          where: {
+            id: {
+              in: roomTypesAvailable.map(roomType => roomType.id)
+            }
+          },
+          orderBy: {
+            price: 'asc'
+          }
+        }
+      }
+    });
+    const avgRating = await db.review.aggregate({
+      where: {
+        propertyId: id
+      },
+      _avg: {
+        rating: true
+      }
+    });
+    return {
+      ...property,
+      roomTypes: property.roomTypes.map((roomType, idx) => ({
+        ...roomType,
+        roomsAvailable: roomTypesAvailable[idx].roomsAvailable
+      })),
+      rating: avgRating._avg.rating
+    };
   }
 
   async create(

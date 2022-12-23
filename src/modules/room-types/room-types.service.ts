@@ -233,7 +233,8 @@ export class RoomTypesService {
     numberOfGuests: number,
     numberOfRoom: number,
     checkIn: Date,
-    checkOut: Date
+    checkOut: Date,
+    propertyId?: string
   ) {
     const guestsEachRoom = Math.ceil(numberOfGuests / numberOfRoom);
     const rs = await this.roomTypes.findMany({
@@ -263,6 +264,9 @@ export class RoomTypesService {
             name: true
           }
         }
+      },
+      orderBy: {
+        price: 'asc'
       }
     });
     const roomTypesAvailable = rs.map(roomType => {
@@ -293,7 +297,9 @@ export class RoomTypesService {
       return null;
     });
     return roomTypesAvailable
-      .filter(r => r != null)
+      .filter(
+        r => r != null && (propertyId ? r.property.id === propertyId : true)
+      )
       .map(r => ({
         id: r.id,
         name: r.name,
