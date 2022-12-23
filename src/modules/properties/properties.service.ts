@@ -153,18 +153,6 @@ export class PropertiesService {
             },
             orderBy: {
               price: 'asc'
-            },
-            include: {
-              _count: {
-                select: {
-                  rooms: {
-                    where: {
-                      isDeleted: false,
-                      status: 'AVAILABLE'
-                    }
-                  }
-                }
-              }
             }
           }
         }
@@ -186,6 +174,70 @@ export class PropertiesService {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async findDetailsForGuest(id: string, query: SearchPropertyDto) {
+    const { checkIn, checkOut, rooms, guests } = query;
+    const roomTypesAvailable =
+      await this.roomTypesService.getListRoomTypesAvailable(
+        guests,
+        rooms,
+        checkIn,
+        checkOut,
+        id
+      );
+    const property = await this.properties.findFirst({
+      where: {
+        id,
+        isDeleted: false
+      },
+      include: {
+        ward: {
+          select: {
+            code: true,
+            fullName: true,
+            district: {
+              select: {
+                code: true,
+                fullName: true,
+                province: {
+                  select: {
+                    code: true,
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        roomTypes: {
+          where: {
+            id: {
+              in: roomTypesAvailable.map(roomType => roomType.id)
+            }
+          },
+          orderBy: {
+            price: 'asc'
+          }
+        }
+      }
+    });
+    const avgRating = await db.review.aggregate({
+      where: {
+        propertyId: id
+      },
+      _avg: {
+        rating: true
+      }
+    });
+    return {
+      ...property,
+      roomTypes: property.roomTypes.map((roomType, idx) => ({
+        ...roomType,
+        roomsAvailable: roomTypesAvailable[idx].roomsAvailable
+      })),
+      rating: avgRating._avg.rating
+    };
   }
 
   async create(
@@ -378,7 +430,7 @@ export class PropertiesService {
 
   // search property which location, room available, day checkin, day checkout, number of rooms, number of guests
 
-  async search(search: SearchPropertyDto) {
+  async searchABC(search: SearchPropertyDto) {
     const {
       location,
       checkIn,
@@ -566,6 +618,158 @@ export class PropertiesService {
   test(userId: string, files: Express.Multer.File[], data: any) {
     return {
       message: 'Upload file successfully'
+    };
+  }
+
+  async search(search: SearchPropertyDto) {
+    const {
+      location,
+      checkIn,
+      checkOut,
+      rooms,
+      guests,
+      page,
+      orderBy,
+      category,
+      startPrice,
+      endPrice
+    } = search;
+
+    const roomTypesAvailable =
+      await this.roomTypesService.getListRoomTypesAvailable(
+        guests,
+        rooms,
+        checkIn,
+        checkOut
+      );
+    // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
+    const properties = await this.properties.findMany({
+      include: {
+        ward: {
+          select: {
+            fullName: true,
+            district: {
+              select: {
+                fullName: true,
+                province: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
+        roomTypes: {
+          select: {
+            id: true,
+            price: true
+          },
+          orderBy: {
+            price: 'asc'
+          }
+        }
+      },
+      where: {
+        id: {
+          in: roomTypesAvailable.map(roomType => roomType.property.id)
+        },
+        isVerified: true,
+        OR: [
+          {
+            ward: {
+              code: location
+            }
+          },
+          {
+            ward: {
+              district: {
+                code: location
+              }
+            }
+          },
+          {
+            ward: {
+              district: {
+                province: {
+                  code: location
+                }
+              }
+            }
+          }
+        ]
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+    const mappedProperties = properties.map(property => ({
+      ...property,
+      roomTypes: property.roomTypes.filter(roomType => {
+        const roomTypeAvailable = roomTypesAvailable.find(
+          roomTypeAvailable => roomTypeAvailable.id === roomType.id
+        );
+        return roomTypeAvailable;
+      })
+    }));
+
+    let newResult = mappedProperties.map(property => {
+      let avgRating =
+        property.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
+        property.reviews.length;
+      delete property.reviews;
+      return {
+        ...property,
+        avgRating
+      };
+    });
+    switch (orderBy) {
+      case 'price.asc':
+        newResult = newResult.sort(
+          (a, b) => a.roomTypes[0].price - b.roomTypes[0].price
+        );
+        break;
+      case 'price.desc':
+        newResult = newResult.sort(
+          (a, b) => b.roomTypes[0].price - a.roomTypes[0].price
+        );
+        break;
+      case 'rating.asc':
+        newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
+        break;
+      case 'rating.desc':
+        newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
+        break;
+      default:
+        break;
+    }
+
+    if (category) {
+      const categoryArr = category.split(',');
+      newResult = newResult.filter(property =>
+        categoryArr.includes(property.categoryId)
+      );
+    }
+    if (startPrice || endPrice) {
+      newResult = newResult.filter(
+        property =>
+          property.roomTypes[0].price >= (startPrice || 0) &&
+          property.roomTypes[0].price <= endPrice
+      );
+    }
+    const totalPage = Math.ceil(newResult.length / 10);
+    const totalProperties = newResult.length;
+    const result = newResult.slice((page - 1) * 10, page * 10);
+    return {
+      currentPage: page,
+      totalPage: totalPage ? totalPage : 1,
+      totalProperties,
+      properties: result
     };
   }
 }

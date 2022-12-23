@@ -6,15 +6,7 @@ import { Prisma, RoomStatus } from '@prisma/client';
 @Injectable()
 export class RoomsService {
   private readonly room = db.room;
-  async createMany(
-    typeInfo: {
-      id: number;
-      roomCount: number;
-    },
-    tx: Prisma.TransactionClient
-  ) {
-    console.log(typeInfo);
-  }
+  private readonly reservations = db.reservation;
 
   async deleteMany(listIds: string[], tx: Prisma.TransactionClient) {
     await tx.room.deleteMany({
@@ -42,12 +34,29 @@ export class RoomsService {
     });
   }
 
-  async getListRoomsByNumberOfRoom(roomTypeId: string, numberOfRoom: number) {
-    const rooms = await this.room.findMany({
+  async getListRoomsAvailableByRoomType(
+    roomTypeId: string,
+    numberOfRoom: number,
+    checkIn: Date,
+    checkOut: Date
+  ) {
+    const rs = await this.room.findMany({
       select: {
         id: true,
+        roomReserved: {
+          select: {
+            reservation: {
+              select: {
+                id: true,
+                checkIn: true,
+                checkOut: true
+              }
+            }
+          }
+        },
         roomType: {
           select: {
+            roomCount: true,
             price: true,
             property: {
               select: {
@@ -58,17 +67,31 @@ export class RoomsService {
         }
       },
       where: {
-        roomTypeId: roomTypeId,
-        status: 'AVAILABLE'
-      },
-      take: numberOfRoom
+        roomTypeId: roomTypeId
+      }
+    });
+    const roomsAvailable = rs.filter(room => {
+      const roomReserved = room.roomReserved;
+      if (roomReserved.length === 0) {
+        return true;
+      }
+      if (
+        roomReserved.some(r => {
+          const checkInReserved = new Date(r.reservation.checkIn);
+          const checkOutReserved = new Date(r.reservation.checkOut);
+          return checkInReserved <= checkOut && checkOutReserved >= checkIn;
+        })
+      ) {
+        return false;
+      }
+      return true;
     });
 
-    if (rooms.length < numberOfRoom) {
+    if (roomsAvailable.length < numberOfRoom) {
       throw new BadRequestException('Not enough room');
     }
 
-    return rooms;
+    return roomsAvailable;
   }
 
   async getAllRoomsInRoomTypes(roomTypeId: string) {
