@@ -177,6 +177,10 @@ export class PropertiesService {
     }
   }
 
+  async findDetailsForGuest(id: string, query: SearchPropertyDto) {
+    const { checkIn, checkOut, rooms, guests } = query;
+  }
+
   async create(
     userId: string,
     property: CreatePropertyDto,
@@ -556,5 +560,117 @@ export class PropertiesService {
     return {
       message: 'Upload file successfully'
     };
+  }
+
+  async searchTest(search: SearchPropertyDto) {
+    const {
+      location,
+      checkIn,
+      checkOut,
+      rooms,
+      guests,
+      page,
+      orderBy,
+      category,
+      startPrice,
+      endPrice
+    } = search;
+    // get all properties in ward with updated_at between checkIn and checkOut and rooms available and >= rooms and maxGuests >= guests and 1 page take 10 properties
+    // const properties = await this.properties.findMany({
+    //   include: {
+    //     ward: {
+    //       select: {
+    //         fullName: true,
+    //         district: {
+    //           select: {
+    //             fullName: true,
+    //             province: {
+    //               select: {
+    //                 name: true
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     },
+    //     roomTypes: {
+    //       select: {
+    //         price: true
+    //       },
+    //       orderBy: {
+    //         price: 'asc'
+    //       }
+    //     }
+    //   },
+    //   where: {
+    //     isVerified: true,
+    //     OR: [
+    //       {
+    //         ward: {
+    //           code: location
+    //         }
+    //       },
+    //       {
+    //         ward: {
+    //           district: {
+    //             code: location
+    //           }
+    //         }
+    //       },
+    //       {
+    //         ward: {
+    //           district: {
+    //             province: {
+    //               code: location
+    //             }
+    //           }
+    //         }
+    //       }
+    //     ],
+    //     roomTypes: {
+    //       some: {
+    //         maxGuests: {
+    //           gte: guests
+    //         }
+    //       }
+    //     },
+    //     roomCount: {
+    //       gte: rooms
+    //     },
+    //     NOT: {
+    //       roomTypes: {
+    //         some: {
+    //           rooms: {
+    //             some: {
+    //               roomReserved: {
+    //                 some: {
+    //                   reservation: {
+    //                     checkIn: {
+    //                       lte: checkOut
+    //                     },
+    //                     checkOut: {
+    //                       gte: checkIn
+    //                     }
+    //                   }
+    //                 }
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   },
+    //   orderBy: {
+    //     updatedAt: 'desc'
+    //   }
+    // });
+    await this.roomTypesService.getListRoomTypesAvailable(
+      guests,
+      rooms,
+      checkIn,
+      checkOut
+    );
+
+    return {};
   }
 }

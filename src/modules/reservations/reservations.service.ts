@@ -25,9 +25,11 @@ export class ReservationsService {
   async createReservation(userId: string, dto: CreateReservationDto) {
     const user = await this.userService.getUserById(userId);
 
-    const rooms = await this.roomsService.getListRoomsByNumberOfRoom(
+    const rooms = await this.roomsService.getListRoomsAvailableByRoomType(
       dto.roomTypeId,
-      dto.roomNumber
+      dto.roomNumber,
+      dto.checkIn,
+      dto.checkOut
     );
 
     const reservation = await this.reservation.create({
@@ -38,7 +40,7 @@ export class ReservationsService {
         status: ReservationStatus.PENDING,
         guestCount: dto.guestCount,
         roomReserved: {
-          create: rooms.map(room => ({
+          create: rooms.slice(0, dto.roomNumber).map(room => ({
             roomId: room.id
           }))
         },

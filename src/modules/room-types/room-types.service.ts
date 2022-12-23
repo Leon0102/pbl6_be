@@ -12,6 +12,7 @@ import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto';
 @Injectable()
 export class RoomTypesService {
   private readonly roomTypes = db.roomType;
+  private readonly rooms = db.room;
   constructor(
     private readonly roomsService: RoomsService,
     private readonly supabaseService: SupabaseService
@@ -227,5 +228,79 @@ export class RoomTypesService {
 
   getAllRoomsInRoomTypes(roomTypeId: string) {
     return this.roomsService.getAllRoomsInRoomTypes(roomTypeId);
+  }
+  async getListRoomTypesAvailable(
+    numberOfGuests: number,
+    numberOfRoom: number,
+    checkIn: Date,
+    checkOut: Date
+  ) {
+    const guestsEachRoom = Math.ceil(numberOfGuests / numberOfRoom);
+    const rs = await this.roomTypes.findMany({
+      select: {
+        id: true,
+        name: true,
+        roomCount: true,
+        maxGuests: true,
+        rooms: {
+          select: {
+            roomReserved: {
+              select: {
+                reservation: {
+                  select: {
+                    id: true,
+                    checkIn: true,
+                    checkOut: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        property: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+    const roomTypesAvailable = rs.map(roomType => {
+      // filter rooms which overlap with checkIn and checkOut
+      roomType.rooms = roomType.rooms.filter(room => {
+        const roomReserved = room.roomReserved;
+        if (roomReserved.length === 0) {
+          return true;
+        }
+        if (
+          roomReserved.some(r => {
+            const checkInReserved = new Date(r.reservation.checkIn);
+            const checkOutReserved = new Date(r.reservation.checkOut);
+            return checkInReserved <= checkOut && checkOutReserved >= checkIn;
+          })
+        ) {
+          return false;
+        }
+        return true;
+      });
+      // check if rooms of roomtype is enough and maxGuests of roomtype is enough
+      if (
+        roomType.rooms.length >= numberOfRoom &&
+        roomType.maxGuests >= guestsEachRoom
+      ) {
+        return roomType;
+      }
+      return null;
+    });
+    return roomTypesAvailable
+      .filter(r => r != null)
+      .map(r => ({
+        id: r.id,
+        name: r.name,
+        maxGuests: r.maxGuests,
+        roomsCount: r.roomCount,
+        roomsAvailable: r.rooms.length,
+        property: r.property
+      }));
   }
 }

@@ -41,6 +41,11 @@ export class PropertiesController {
     private readonly roomTypesService: RoomTypesService,
     private readonly reviewsService: ReviewsService
   ) {}
+  @Get('search-test')
+  @HttpCode(HttpStatus.OK)
+  async searchTest(@Query() query: SearchPropertyDto) {
+    return this.propertiesService.searchTest(query);
+  }
 
   @Get(':id/reviews')
   @HttpCode(HttpStatus.OK)
@@ -93,12 +98,22 @@ export class PropertiesController {
   ) {
     return this.propertiesService.getRoomTypesOfProperty(user.id, propertyId);
   }
+  // Get Details of a property for Guests
+  @Get(':id/details')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find One Properties For Guest' })
+  async findDetailsByIdForGuest(
+    @Query() query: SearchPropertyDto,
+    @Param('id') id: string
+  ) {
+    return this.propertiesService.findDetailsForGuest(id, query);
+  }
 
   // Get Details of a property
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find One Properties' })
-  async findById(@Param('id') id: string) {
+  async findDetailsById(@Param('id') id: string) {
     return this.propertiesService.findOne(id);
   }
 
