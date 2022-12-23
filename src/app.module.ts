@@ -14,6 +14,7 @@ import { RoomTypesModule } from './modules/room-types/room-types.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { UsersModule } from './modules/users/users.module';
 import { SharedModule } from './shared/shared.module';
+import { ReportsModule } from './modules/reports/reports.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,7 +47,8 @@ import { SharedModule } from './shared/shared.module';
     PrismaModule,
     ReservationsModule,
     ReviewsModule,
-    AdminModule
+    AdminModule,
+    ReportsModule
   ]
 })
 export class AppModule implements NestModule {
