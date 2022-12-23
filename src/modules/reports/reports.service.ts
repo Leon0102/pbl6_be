@@ -104,7 +104,7 @@ export class ReportsService {
         roomType
       };
     });
-    return finalRs
+    const filteredRs = finalRs
       .filter(rs => {
         if (query.propertyId) {
           return rs.property.id === query.propertyId;
@@ -124,5 +124,24 @@ export class ReportsService {
         }
         return true;
       });
+    const totalPrice = filteredRs.reduce((acc, cur) => {
+      if (cur.status === 'CONFIRMED') return acc + cur.totalPrice;
+      return acc;
+    }, 0);
+    const statusCount = {
+      PENDING: 0,
+      CONFIRMED: 0,
+      CANCELLED: 0,
+      FAILED: 0,
+      COMPLETED: 0
+    };
+    filteredRs.forEach(element => {
+      statusCount[element.status] += 1;
+    });
+    return {
+      totalPrice,
+      statusCount,
+      reservations: filteredRs
+    };
   }
 }
