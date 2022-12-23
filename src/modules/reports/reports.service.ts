@@ -7,7 +7,13 @@ export class ReportsService {
   private readonly reservation = db.reservation;
   constructor(private readonly reservationsService: ReservationsService) {}
 
-  async getHostReservationsReport(userId: string) {
+  async getHostReservationsReport(
+    query: {
+      propertyId: string;
+      dateRange: string;
+    },
+    userId: string
+  ) {
     // get reservation of all room of host
     const rs = await this.reservation.findMany({
       where: {
@@ -98,7 +104,25 @@ export class ReportsService {
         roomType
       };
     });
-    console.log(finalRs.length);
-    return finalRs;
+    return finalRs
+      .filter(rs => {
+        if (query.propertyId) {
+          return rs.property.id === query.propertyId;
+        }
+        return true;
+      })
+      .filter(rs => {
+        if (query.dateRange) {
+          const [start, end] = query.dateRange.split('.');
+          const startDate = new Date(start);
+          const endDate = new Date(end);
+          console.log(start, end);
+          return (
+            rs.createdAt.getTime() >= startDate.getTime() &&
+            rs.createdAt.getTime() <= endDate.getTime()
+          );
+        }
+        return true;
+      });
   }
 }
