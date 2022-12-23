@@ -2,7 +2,7 @@ import { Categories } from '@common/constants/category-type.enum';
 import { db } from '@common/utils/dbClient';
 import { RoomTypesService } from '@modules/room-types/room-types.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Property, User } from '@prisma/client';
+import { Property, User } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreatePropertyDto, SearchPropertyDto, UpdatePropertyDto } from './dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
@@ -16,7 +16,7 @@ export class PropertiesService {
   ) {}
 
   async findAll(query: FilterPropertyDto) {
-    const { page, isVerified, searchKey } = query;
+    const { page, isVerified, searchKey, order, sortBy } = query;
     try {
       const properties = await this.properties.findMany({
         where: {
@@ -25,8 +25,8 @@ export class PropertiesService {
             isVerified === 'true'
               ? true
               : isVerified === 'false'
-              ? false
-              : undefined,
+                ? false
+                : undefined,
           OR: [
             {
               name: {
@@ -79,7 +79,7 @@ export class PropertiesService {
         }
       });
 
-      const result = await Promise.all(
+      let result = await Promise.all(
         properties.map(async prop => {
           const avgRating = await db.review.aggregate({
             where: {
@@ -96,6 +96,17 @@ export class PropertiesService {
           };
         })
       );
+
+      if (sortBy && order) {
+        result = result.sort((a, b) => {
+          if (order === 'ASC') {
+            return a[sortBy] > b[sortBy] ? 1 : -1;
+          } else {
+            return a[sortBy] < b[sortBy] ? 1 : -1;
+          }
+        });
+      }
+
       const totalPage = Math.ceil(result.length / 10);
       const totalProperties = result.length;
       const newResult = result.slice((page - 1) * 10, page * 10);

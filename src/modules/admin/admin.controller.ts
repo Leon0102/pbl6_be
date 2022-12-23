@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { RoleType } from '@prisma/client';
+import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import RoleGuard from '../../guards/roles.guard';
 import { AdminService } from './admin.service';
 
@@ -28,5 +29,13 @@ export class AdminController {
       propertiesEachCategory,
       amountReservationsEachMonth,
     };
+  }
+
+  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get Notifications' })
+  @Get('notifications')
+  async getNotifications(@Query() options: PageOptionsDto) {
+    return await this.adminService.getNotificationsFromAdmin(options);
   }
 }

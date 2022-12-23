@@ -11,6 +11,10 @@ export class PageOptionsDto {
 
     @IsString()
     @ApiPropertyOptional()
+    readonly sortBy?: string = 'createdAt';
+
+    @IsString()
+    @ApiPropertyOptional()
     readonly searchKey: string = '';
 
     @IsNumber()

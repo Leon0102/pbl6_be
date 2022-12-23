@@ -92,43 +92,6 @@ export class ReservationsService {
     return reservations;
   }
 
-  async getReservationOfHost(userId: string) {
-    // check if user is host
-    const user = await db.user.findUnique({
-      where: {
-        id: userId
-      },
-      select: {
-        role: true
-      }
-    });
-
-    if (user.role.name !== RoleType.HOST) {
-      throw new NotFoundException('User is not host');
-    }
-    // get reservation of all room of host
-    const rooms = await db.property.findMany({
-      where: {
-        userId
-      },
-      select: {
-        roomTypes: {
-          select: {
-            rooms: {
-              select: {
-                id: true,
-                roomReserved: {
-                  select: {
-                    id: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-  }
   async getOneReservation(user: User, id: string) {
     const rs = await this.reservation.findUnique({
       where: {

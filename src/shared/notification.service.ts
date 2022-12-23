@@ -3,12 +3,12 @@ import {
   CreateNotificationDto
 } from '@common/dto/create-notification.dto';
 import { db } from '@common/utils/dbClient';
+import { getNotificationContent } from '@common/utils/notifications';
 import { Injectable } from '@nestjs/common';
+import { NotificationType } from '@prisma/client';
 import * as firebase from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
 import * as serviceAccount from '../../push-notification.json';
-import { getNotificationContent } from '@common/utils/notifications';
-import { NotificationType } from '@prisma/client';
 export interface ISendFirebaseMessages {
   token: string;
   title?: string;
@@ -31,6 +31,26 @@ export class NotificationsService {
         title: data.title,
         body: data.message
       },
+      android: {
+        notification: {
+          imageUrl: 'https://i.imgur.com/89pwWSx.png'
+        }
+      },
+      apns: {
+        payload: {
+          aps: {
+            'mutable-content': 1
+          }
+        },
+        fcm_options: {
+          image: 'https://i.imgur.com/89pwWSx.png'
+        }
+      },
+      webpush: {
+        headers: {
+          image: 'https://i.imgur.com/89pwWSx.png'
+        }
+      },
       token: data.token
     };
     await firebase.messaging().send(message);
@@ -49,7 +69,7 @@ export class NotificationsService {
           type: data.type,
           context: data.context,
           userId: data.userId
-        }
+        },
       });
       const message = getNotificationContent(
         NotificationType[data.type],
@@ -110,7 +130,7 @@ export class NotificationsService {
           this.sendFirebaseMessages({
             token: user.deviceToken,
             title: dto.title,
-            message: dto.body
+            message: dto.body,
           });
         } catch (error) {
           console.log(error);
