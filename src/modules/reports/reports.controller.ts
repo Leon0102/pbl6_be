@@ -26,7 +26,14 @@ export class ReportsController {
     description: 'Find all reservations for host'
   })
   @ApiOperation({ summary: 'Find all reservations for host' })
-  async getHostReservationsReport(@Query() query: any, @GetUser() user: User) {
-    return this.reportsService.getHostReservationsReport(user.id);
+  async getHostReservationsReport(
+    @Query()
+    query: {
+      propertyId: string;
+      dateRange: string;
+    },
+    @GetUser() user: User
+  ) {
+    return this.reportsService.getHostReservationsReport(query, user.id);
   }
 }
