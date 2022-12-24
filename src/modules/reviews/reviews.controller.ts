@@ -54,7 +54,7 @@ export class ReviewsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseGuards(RoleGuard([RoleType.ADMIN]))
+  @UseGuards(RoleGuard([RoleType.GUEST]))
   @ApiAcceptedResponse({
     description: 'Delete Review',
     type: String
