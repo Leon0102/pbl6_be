@@ -1,13 +1,16 @@
 import { CreateUserDto } from '@modules/users/dto/create-user.dto';
 import { UsersService } from '@modules/users/users.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { HttpException } from '@nestjs/common/exceptions';
+import { BadRequestException, HttpException } from '@nestjs/common/exceptions';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
+import { totp } from 'otplib';
 import * as randtoken from 'rand-token';
+import { MailService } from '../../shared/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto';
+import { AuthDto, OTPDto } from './dto';
+
 
 @Injectable()
 export class AuthService {
@@ -15,6 +18,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
 
     private readonly usersService: UsersService,
+
+    private readonly mailService: MailService,
     private jwt: JwtService,
     private config: ConfigService
   ) {}
@@ -114,5 +119,39 @@ export class AuthService {
       expirydate
     );
     return refreshToken;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.getUserByEmail(email);
+    totp.options = {
+      digits: 6,
+      step: 600
+    };
+    const username = user.name;
+    const otpCode = totp.generate(email).toString();
+    console.log(otpCode);
+    await this.mailService.sendEmailOTP(
+      user.email,
+      'Mã xác nhận đổi mật khẩu',
+      { username, otpCode });
+    return {
+      message: 'Mã OTP đã được gửi đến email của bạn'
+    };
+  }
+
+  async verifyOTP(dto: OTPDto) {
+    const user = await this.usersService.getUserByEmail(dto.email);
+    console.log(dto);
+    if (!totp.check(dto.otpCode, dto.email)) {
+      throw new BadRequestException('Mã OTP không chính xác');
+    }
+
+    await this.usersService.updateUser(user.id, {
+      password: await argon.hash('password')
+    });
+
+    return {
+      message: 'Mật khẩu đã được đặt lại thành mật khẩu mặc định là: password'
+    };
   }
 }
