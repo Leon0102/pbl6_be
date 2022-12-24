@@ -146,12 +146,14 @@ export class AuthService {
       throw new BadRequestException('Mã OTP không chính xác');
     }
 
+    const newPassword = randtoken.generate(8);
+
     await this.usersService.updateUser(user.id, {
       password: await argon.hash('password')
     });
 
     return {
-      message: 'Mật khẩu đã được đặt lại thành mật khẩu mặc định là: password'
+      message: `Mật khẩu đã được đặt lại thành mật khẩu mặc định là: ${newPassword}`
     };
   }
 }
