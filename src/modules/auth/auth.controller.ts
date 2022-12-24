@@ -1,12 +1,14 @@
 import { User } from '.prisma/client';
 import { CreateUserDto } from '@modules/users/dto/create-user.dto';
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, Patch, Post, UseGuards } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RoleType } from '@prisma/client';
+import RoleGuard from '../../guards/roles.guard';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators';
-import { AuthDto, ForgotPasswordDto, OTPDto } from './dto';
+import { AuthDto, ForgotPasswordDto, OTPDto, ResetPasswordDto } from './dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
@@ -58,6 +60,18 @@ export class AuthController {
   })
   @ApiOperation({ summary: 'Verify OTP' })
   async verifyOtp(@Body() dto: OTPDto) {
-    return await this.authService.verifyOTP(dto);
+    const user = await this.authService.verifyOTP(dto);
+    return this.authService.signNewToken(user.email);
+  }
+
+  @Patch('reset-password')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseGuards(RoleGuard([RoleType.HOST, RoleType.GUEST]))
+  @ApiAcceptedResponse({
+    description: 'Reset password successfully'
+  })
+  @ApiOperation({ summary: 'Reset password' })
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

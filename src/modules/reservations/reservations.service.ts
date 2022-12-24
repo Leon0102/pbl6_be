@@ -1,7 +1,7 @@
 import { getDaysDuration, getReservationPrice } from '@common/utils/utils';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ReservationStatus, RoleType, User } from '@prisma/client';
+import { ReservationStatus, User } from '@prisma/client';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import { db } from '../../common/utils/dbClient';
 import { StatusReservation } from '../../constants';
@@ -56,18 +56,6 @@ export class ReservationsService {
       rooms[0].roomType.price *
       dto.roomNumber *
       getDaysDuration(dto.checkIn, dto.checkOut);
-    this.mailService.sendEmailReservation(
-      user.email,
-      'Bạn đã đặt phòng thành công',
-      {
-        username: user.name,
-        checkIn: dto.checkIn,
-        checkOut: dto.checkOut,
-        guestCount: dto.guestCount,
-        property: rooms[0].roomType.property.name,
-        totalPrice
-      }
-    );
     return {
       orderId: reservation.id,
       amount: totalPrice
@@ -272,6 +260,9 @@ export class ReservationsService {
         id: true,
         status: true,
         userId: true,
+        checkIn: true,
+        checkOut: true,
+        guestCount: true,
         roomReserved: {
           select: {
             roomId: true,
@@ -279,8 +270,10 @@ export class ReservationsService {
               select: {
                 roomType: {
                   select: {
+                    price: true,
                     property: {
                       select: {
+                        user: true,
                         id: true,
                         name: true,
                         categoryId: true
@@ -311,6 +304,47 @@ export class ReservationsService {
         status: paymentStatus
       }
     });
+
+    const user = await this.userService.getUserById(reservation.userId);
+
+    const host = reservation.roomReserved[0].room.roomType.property.user;
+
+    this.mailService.sendHostEmailReservation(
+      host.email,
+      'Bạn có đơn đặt phòng mới',
+      {
+        username: host.name,
+        propertyName: reservation.roomReserved[0].room.roomType.property.name,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        guestCount: reservation.guestCount,
+        property: reservation.roomReserved[0].room.roomType.property,
+        totalPrice: getReservationPrice(
+          reservation.checkOut,
+          reservation.checkIn,
+          reservation.roomReserved[0].room.roomType.price,
+          reservation.roomReserved.length
+        )
+      }
+    );
+
+    this.mailService.sendEmailReservation(
+      user.email,
+      'Bạn đã đặt phòng thành công',
+      {
+        username: user.name,
+        checkIn: reservation.checkIn,
+        checkOut: reservation.checkOut,
+        guestCount: reservation.guestCount,
+        property: reservation.roomReserved[0].room.roomType.property,
+        totalPrice: getReservationPrice(
+          reservation.checkOut,
+          reservation.checkIn,
+          reservation.roomReserved[0].room.roomType.price,
+          reservation.roomReserved.length
+        )
+      }
+    );
 
     return {
       id: reservation.id,

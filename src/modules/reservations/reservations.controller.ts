@@ -12,6 +12,7 @@ import {
   Res,
   UseGuards
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   NotificationType,
@@ -26,7 +27,6 @@ import { VnPayService } from '../../shared/vnpay.service';
 import { GetUser } from '../auth/decorators';
 import { CreateReservationDto } from './dto';
 import { ReservationsService } from './reservations.service';
-import { ConfigService } from '@nestjs/config';
 @Controller('reservations')
 @ApiTags('reservations')
 export class ReservationsController {
@@ -71,8 +71,11 @@ export class ReservationsController {
       res.redirect(
         `${this.config.get(
           'FE_DOMAIN'
-        )}/reservations/${id}?vnp_TransactionStatus=${
-          req.query.vnp_TransactionStatus
+        )}/reservations/${id}?vnp_TransactionStatus=${req.query.vnp_TransactionStatus
+        }`
+      );
+      res.redirect(
+        `${this.config.get('FE_DOMAIN')}/reservations/${id}?${req.query.vnp_TransactionStatus
         }`
       );
     }
