@@ -1,4 +1,4 @@
-import { getReservationPrice } from '@common/utils/utils';
+import { getDaysDuration, getReservationPrice } from '@common/utils/utils';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReservationStatus, RoleType, User } from '@prisma/client';
@@ -54,9 +54,7 @@ export class ReservationsService {
     const totalPrice =
       rooms[0].roomType.price *
       dto.roomNumber *
-      Math.floor(
-        (dto.checkOut.getTime() - dto.checkIn.getTime()) / (1000 * 3600 * 24)
-      );
+      getDaysDuration(dto.checkIn, dto.checkOut);
     this.mailService.sendEmailReservation(
       user.email,
       'Bạn đã đặt phòng thành công',

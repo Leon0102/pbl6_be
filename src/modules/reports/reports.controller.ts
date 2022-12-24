@@ -11,6 +11,7 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleType, User } from '@prisma/client';
 import RoleGuard from 'guards/roles.guard';
+import { ReportsDto } from './dto/reports.dto';
 import { ReportsService } from './reports.service';
 
 @Controller('reports')
@@ -28,10 +29,7 @@ export class ReportsController {
   @ApiOperation({ summary: 'Find all reservations for host' })
   async getHostReservationsReport(
     @Query()
-    query: {
-      propertyId: string;
-      dateRange: string;
-    },
+    query: ReportsDto,
     @GetUser() user: User
   ) {
     return this.reportsService.getHostReservationsReport(query, user.id);
