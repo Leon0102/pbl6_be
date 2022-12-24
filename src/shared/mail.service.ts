@@ -44,5 +44,15 @@ export class MailService {
     });
   }
 
+  async sendHostEmailReservation(to: string, subject: string, context: any) {
+    const { username, propertyName, checkIn, checkOut, guestCount, totalPrice } = context;
+    return this.mailerService.sendMail({
+      to,
+      from: this.config.get('MAIL_FROM'),
+      subject,
+      html: CREATE_RESERVATION.template(username, propertyName, checkIn, checkOut, guestCount, totalPrice)
+    });
+  }
+
 
 }

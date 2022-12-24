@@ -9,7 +9,7 @@ import { totp } from 'otplib';
 import * as randtoken from 'rand-token';
 import { MailService } from '../../shared/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto, OTPDto } from './dto';
+import { AuthDto, OTPDto, ResetPasswordDto } from './dto';
 
 
 @Injectable()
@@ -141,7 +141,6 @@ export class AuthService {
 
   async verifyOTP(dto: OTPDto) {
     const user = await this.usersService.getUserByEmail(dto.email);
-    console.log(dto);
     if (!totp.check(dto.otpCode, dto.email)) {
       throw new BadRequestException('Mã OTP không chính xác');
     }
@@ -152,8 +151,17 @@ export class AuthService {
       password: await argon.hash('password')
     });
 
+    return user;
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const user = await this.usersService.getUserByEmail(resetPasswordDto.email);
+    await this.usersService.updateUser(user.id, {
+      password: await argon.hash(resetPasswordDto.newPassword)
+    });
     return {
-      message: `Mật khẩu đã được đặt lại thành mật khẩu mặc định là: ${newPassword}`
+      message: 'Đổi mật khẩu thành công'
     };
   }
+
 }
