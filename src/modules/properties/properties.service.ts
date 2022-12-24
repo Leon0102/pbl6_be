@@ -25,8 +25,8 @@ export class PropertiesService {
             isVerified === 'true'
               ? true
               : isVerified === 'false'
-                ? false
-                : undefined,
+              ? false
+              : undefined,
           OR: [
             {
               name: {
@@ -92,7 +92,7 @@ export class PropertiesService {
 
           return {
             ...prop,
-            rating: avgRating._avg.rating
+            avgRating: avgRating._avg.rating.toFixed(1)
           };
         })
       );
@@ -169,7 +169,7 @@ export class PropertiesService {
 
       return {
         ...prop,
-        rating: avgRating._avg.rating.toFixed(2)
+        avgRating: avgRating._avg.rating.toFixed(1)
       };
     } catch (error) {
       console.log(error);
@@ -256,7 +256,7 @@ export class PropertiesService {
         ...roomType,
         roomsAvailable: roomTypesAvailable[idx].roomsAvailable
       })),
-      rating: avgRating._avg.rating.toFixed(2)
+      avgRating: avgRating._avg.rating.toFixed(1)
     };
   }
 
