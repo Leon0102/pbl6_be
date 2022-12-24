@@ -1,3 +1,4 @@
+import { getReservationPrice } from '@common/utils/utils';
 import { Injectable } from '@nestjs/common';
 import { NotificationType, ReservationStatus } from '@prisma/client';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
@@ -5,7 +6,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AdminService {
-
   startDateOfYear = new Date(new Date().getFullYear(), 0, 1);
   endDateOfYear = new Date(new Date().getFullYear(), 12, 31);
 
@@ -17,13 +17,13 @@ export class AdminService {
         createdAt: {
           gte: this.startDateOfYear,
           lte: this.endDateOfYear
-        },
+        }
       },
       select: {
-        createdAt: true,
-      },
+        createdAt: true
+      }
     });
-    const users = result.map((item) => {
+    const users = result.map(item => {
       const date = new Date(item.createdAt);
       return date.getMonth();
     });
@@ -39,17 +39,17 @@ export class AdminService {
       'September',
       'October',
       'November',
-      'December',
+      'December'
     ];
     const usersEachMonth = months.map((month, index) => {
-      const count = users.filter((user) => user === index).length;
+      const count = users.filter(user => user === index).length;
       return {
-        count,
+        count
       };
     });
     return {
       months,
-      usersEachMonth,
+      usersEachMonth
     };
   }
 
@@ -58,27 +58,25 @@ export class AdminService {
 
     const result = await this.prisma.property.findMany({
       select: {
-        category: true,
-      },
+        category: true
+      }
     });
     const percents = await this.getPerCentsPropertiesOfCategoryEachMonth();
-    const countPropertiesEachCategory = listCategories.map((category) => {
+    const countPropertiesEachCategory = listCategories.map(category => {
       const percentsPerCategory = percents.filter(
-        (percent) => percent.category === category.name,
+        percent => percent.category === category.name
       );
       const count = result.filter(
-        (property) => property.category.id === category.id,
+        property => property.category.id === category.id
       ).length;
       return {
         category: category.name,
         count,
-        percent: percentsPerCategory[0].percent,
+        percent: percentsPerCategory[0].percent
       };
-    }
-    );
+    });
 
     return countPropertiesEachCategory;
-
   }
 
   async getPerCentsPropertiesOfCategoryEachMonth() {
@@ -86,68 +84,72 @@ export class AdminService {
 
     const listPropertiesThisMonth = await this.prisma.property.findMany({
       select: {
-        category: true,
+        category: true
       },
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+        }
+      }
     });
-    const countPropertiesEachCategory = listCategories.map((category) => {
+    const countPropertiesEachCategory = listCategories.map(category => {
       const count = listPropertiesThisMonth.filter(
-        (property) => property.category.id === category.id,
+        property => property.category.id === category.id
       ).length;
       return {
         category: category.name,
-        count,
+        count
       };
-    }
-    );
+    });
 
     const listPropertiesLastMonth = await this.prisma.property.findMany({
       select: {
-        category: true,
+        category: true
       },
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+        }
+      }
     });
     const countPropertiesEachCategoryLastMonth = listCategories.map(
-      (category) => {
+      category => {
         const count = listPropertiesLastMonth.filter(
-          (property) => property.category.id === category.id,
+          property => property.category.id === category.id
         ).length;
         return {
           category: category.name,
-          count,
+          count
         };
       }
     );
 
     const percents = countPropertiesEachCategory.map((item, index) => {
-      if (item.count === 0 && countPropertiesEachCategoryLastMonth[index].count === 0) {
+      if (
+        item.count === 0 &&
+        countPropertiesEachCategoryLastMonth[index].count === 0
+      ) {
         return {
           category: item.category,
-          percent: 0,
+          percent: 0
         };
       }
-      const percent = countPropertiesEachCategoryLastMonth[index].count === 0
-        ? 100
-        : Math.round(
-          (item.count - countPropertiesEachCategoryLastMonth[index].count)
-          / countPropertiesEachCategoryLastMonth[index].count * 100,
-        );
+      const percent =
+        countPropertiesEachCategoryLastMonth[index].count === 0
+          ? 100
+          : Math.round(
+              ((item.count -
+                countPropertiesEachCategoryLastMonth[index].count) /
+                countPropertiesEachCategoryLastMonth[index].count) *
+                100
+            );
       return {
         category: item.category,
-        percent,
+        percent
       };
-    }
-    );
+    });
 
     return percents;
   }
@@ -180,12 +182,13 @@ export class AdminService {
     ).reduce(
       (acc, item) =>
         acc +
-        item.roomReserved[0].room.roomType.price *
-        item.roomReserved.length *
-        Math.floor(
-          (item.checkOut.getTime() - item.checkIn.getTime()) /
-          (1000 * 3600 * 24)
+        getReservationPrice(
+          item.checkOut,
+          item.checkIn,
+          item.roomReserved[0].room.roomType.price,
+          item.roomReserved.length
         ),
+
       0
     );
     const percents = await this.getPercents();
@@ -193,7 +196,7 @@ export class AdminService {
       totalUsers,
       totalProperties,
       totalAmountReservations,
-      ...percents,
+      ...percents
     };
   }
 
@@ -202,118 +205,143 @@ export class AdminService {
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+        }
+      }
     });
     const totalUsersLastMonth = await this.prisma.user.count({
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+        }
+      }
     });
     const totalPropertiesThisMonth = await this.prisma.property.count({
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+        }
+      }
     });
     const totalPropertiesLastMonth = await this.prisma.property.count({
       where: {
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0),
-        },
-      },
+          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+        }
+      }
     });
 
-    const totalAmountReservationsThisMonth = (await this.prisma.roomReserved.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    const totalAmountReservationsThisMonth = (
+      await this.prisma.roomReserved.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            lte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() + 1,
+              0
+            )
+          }
         },
-      },
-      select: {
-        room: {
-          select: {
-            roomType: {
-              select: {
-                price: true,
+        select: {
+          room: {
+            select: {
+              roomType: {
+                select: {
+                  price: true
+                }
               }
-            },
-          },
-        },
-      }
-    })
+            }
+          }
+        }
+      })
     ).reduce((acc, item) => acc + item.room.roomType.price, 0);
-    const totalAmountReservationsLastMonth = await (await this.prisma.roomReserved.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-          lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0),
+    const totalAmountReservationsLastMonth = await (
+      await this.prisma.roomReserved.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
+            lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+          }
         },
-      },
-      select: {
-        room: {
-          select: {
-            roomType: {
-              select: {
-                price: true,
+        select: {
+          room: {
+            select: {
+              roomType: {
+                select: {
+                  price: true
+                }
               }
-            },
-          },
-        },
-      }
-    })
+            }
+          }
+        }
+      })
     ).reduce((acc, item) => acc + item.room.roomType.price, 0);
 
-    const percentUsers = totalUsersLastMonth === 0 ? 100 : Math.round(
-      ((totalUsersThisMonth - totalUsersLastMonth) / totalUsersLastMonth) * 100,
-    );
-    const percentProperties = totalPropertiesLastMonth === 0 ? 100 : Math.round(
-      ((totalPropertiesThisMonth - totalPropertiesLastMonth) /
-        totalPropertiesLastMonth) * 100,
-    );
+    const percentUsers =
+      totalUsersLastMonth === 0
+        ? 100
+        : Math.round(
+            ((totalUsersThisMonth - totalUsersLastMonth) /
+              totalUsersLastMonth) *
+              100
+          );
+    const percentProperties =
+      totalPropertiesLastMonth === 0
+        ? 100
+        : Math.round(
+            ((totalPropertiesThisMonth - totalPropertiesLastMonth) /
+              totalPropertiesLastMonth) *
+              100
+          );
 
-    const percentAmountReservations = totalAmountReservationsLastMonth === 0 ? 100 : Math.round(
-      ((totalAmountReservationsThisMonth - totalAmountReservationsLastMonth) /
-        totalAmountReservationsLastMonth) * 100,
-    );
+    const percentAmountReservations =
+      totalAmountReservationsLastMonth === 0
+        ? 100
+        : Math.round(
+            ((totalAmountReservationsThisMonth -
+              totalAmountReservationsLastMonth) /
+              totalAmountReservationsLastMonth) *
+              100
+          );
 
     return {
       percentUsers,
       percentProperties,
-      percentAmountReservations,
+      percentAmountReservations
     };
   }
 
   async getAmountReservationsEachMonth() {
-    const listAmountReservationsEachMonth = await this.prisma.reservation.findMany({
-      where: {
-        status: ReservationStatus.CONFIRMED
-      },
-      include: {
-        roomReserved: {
-          select: {
-            room: {
-              select: {
-                id: true,
-                roomType: {
-                  select: {
-                    price: true
+    const listAmountReservationsEachMonth =
+      await this.prisma.reservation.findMany({
+        where: {
+          status: ReservationStatus.CONFIRMED
+        },
+        include: {
+          roomReserved: {
+            select: {
+              room: {
+                select: {
+                  id: true,
+                  roomType: {
+                    select: {
+                      price: true
+                    }
                   }
                 }
               }
             }
           }
         }
-      }
-    });
+      });
     const months = [
       'January',
       'February',
@@ -326,24 +354,26 @@ export class AdminService {
       'September',
       'October',
       'November',
-      'December',
+      'December'
     ];
 
-    const amountReservationsEachMonth = months.map((month) => {
-      const amount = listAmountReservationsEachMonth.map((item) => {
-        if (item.checkIn.getMonth() === months.indexOf(month)) {
-          return item.roomReserved[0].room.roomType.price *
-            item.roomReserved.length *
-            Math.floor(
-              (item.checkOut.getTime() - item.checkIn.getTime()) /
-              (1000 * 3600 * 24)
+    const amountReservationsEachMonth = months.map(month => {
+      const amount = listAmountReservationsEachMonth
+        .map(item => {
+          if (item.checkIn.getMonth() === months.indexOf(month)) {
+            return getReservationPrice(
+              item.checkOut,
+              item.checkIn,
+              item.roomReserved[0].room.roomType.price,
+              item.roomReserved.length
             );
-        }
-        return 0;
-      }).reduce((acc, item) => acc + item, 0);
+          }
+          return 0;
+        })
+        .reduce((acc, item) => acc + item, 0);
       return {
         month,
-        amount,
+        amount
       };
     });
 
@@ -354,18 +384,18 @@ export class AdminService {
     const { page } = options;
     const notifications = await this.prisma.notification.findMany({
       where: {
-        type: NotificationType.FROM_ADMIN,
+        type: NotificationType.FROM_ADMIN
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        createdAt: 'desc'
+      }
     });
-    const result = notifications.map((item) => {
+    const result = notifications.map(item => {
       return {
         id: item.id,
         title: JSON.parse(JSON.stringify(item.context)).title,
         body: JSON.parse(JSON.stringify(item.context)).body,
-        createdAt: item.createdAt,
+        createdAt: item.createdAt
       };
     });
     const totalPage = Math.ceil(result.length / 4);
@@ -375,7 +405,7 @@ export class AdminService {
       notifications: newResult,
       totalPage,
       totalUsers,
-      currentPage: page,
+      currentPage: page
     };
   }
 }

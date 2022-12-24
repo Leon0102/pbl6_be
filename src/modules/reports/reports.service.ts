@@ -1,19 +1,18 @@
-import { getReservationPrice } from '@common/utils/utils';
+import {
+  getDaysDuration,
+  getReservationPrice,
+  getRevenue
+} from '@common/utils/utils';
 import { ReservationsService } from '@modules/reservations/reservations.service';
 import { Injectable } from '@nestjs/common';
 import { db } from '../../common/utils/dbClient';
+import { ReportsDto } from './dto/reports.dto';
 @Injectable()
 export class ReportsService {
   private readonly reservation = db.reservation;
   constructor(private readonly reservationsService: ReservationsService) {}
 
-  async getHostReservationsReport(
-    query: {
-      propertyId: string;
-      dateRange: string;
-    },
-    userId: string
-  ) {
+  async getHostReservationsReport(query: ReportsDto, userId: string) {
     // get reservation of all room of host
     const rs = await this.reservation.findMany({
       where: {
@@ -65,6 +64,9 @@ export class ReportsService {
             }
           }
         }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
     const finalRs = rs.map(r => {
@@ -85,9 +87,7 @@ export class ReportsService {
         id,
         checkIn,
         checkOut,
-        duration: Math.floor(
-          (checkOut.getTime() - checkIn.getTime()) / (1000 * 3600 * 24)
-        ),
+        duration: getDaysDuration(checkIn, checkOut),
         status,
         roomsNumber,
         guestCount,
@@ -104,6 +104,9 @@ export class ReportsService {
         roomType
       };
     });
+    const [start, end] = query.dateRange.split('.');
+    const startDate = new Date(start);
+    const endDate = new Date(end);
     const filteredRs = finalRs
       .filter(rs => {
         if (query.propertyId) {
@@ -112,22 +115,19 @@ export class ReportsService {
         return true;
       })
       .filter(rs => {
-        if (query.dateRange) {
-          const [start, end] = query.dateRange.split('.');
-          const startDate = new Date(start);
-          const endDate = new Date(end);
-          console.log(start, end);
-          return (
-            rs.createdAt.getTime() >= startDate.getTime() &&
-            rs.createdAt.getTime() <= endDate.getTime()
-          );
-        }
-        return true;
+        return (
+          rs.createdAt.getTime() >= startDate.getTime() &&
+          rs.createdAt.getTime() <= endDate.getTime()
+        );
       });
     const totalPrice = filteredRs.reduce((acc, cur) => {
       if (cur.status === 'CONFIRMED') return acc + cur.totalPrice;
       return acc;
     }, 0);
+    const revenue = getRevenue(
+      filteredRs,
+      getDaysDuration(startDate, endDate) > 32
+    );
     const statusCount = {
       PENDING: 0,
       CONFIRMED: 0,
@@ -140,6 +140,7 @@ export class ReportsService {
     });
     return {
       totalPrice,
+      revenue,
       statusCount,
       reservations: filteredRs
     };
