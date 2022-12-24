@@ -13,7 +13,12 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { NotificationType, RoleType, User } from '@prisma/client';
+import {
+  NotificationType,
+  ReservationStatus,
+  RoleType,
+  User
+} from '@prisma/client';
 import { PageOptionsDto } from '../../common/dto/page-options.dto';
 import RoleGuard from '../../guards/roles.guard';
 import { NotificationsService } from '../../shared/notification.service';
@@ -47,15 +52,25 @@ export class ReservationsController {
   @Get('vnpay_return')
   async vnpayReturn(@Req() req: any, @Res() res: any) {
     const result = this.vnPay.vnPayReturn(req);
+    console.log('vnpay_result', result);
     if (result.message === 'success') {
       const { id, userId, property } =
-        await this.reservationsService.confirmReservation(req.query.vnp_TxnRef);
-      this.notificationsService.create({
-        userId,
-        type: NotificationType.PAID_RESERVATION_SUCCESS,
-        context: property
-      });
-      res.redirect(`${this.config.get('FE_DOMAIN')}/reservations/${id}`);
+        await this.reservationsService.confirmReservation(
+          req.query.vnp_TxnRef,
+          req.query.vnp_TransactionStatus === '00'
+            ? ReservationStatus.CONFIRMED
+            : ReservationStatus.CANCELLED
+        );
+      if (req.query.vnp_TransactionStatus === '00') {
+        this.notificationsService.create({
+          userId,
+          type: NotificationType.PAID_RESERVATION_SUCCESS,
+          context: property
+        });
+      }
+      res.redirect(
+        `${this.config.get('FE_DOMAIN')}/reservations/${id}?${req.query}`
+      );
     }
   }
   @Get(':id')

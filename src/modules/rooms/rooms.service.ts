@@ -1,7 +1,7 @@
 import { db } from '@common/utils/dbClient';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Prisma, RoomStatus } from '@prisma/client';
+import { Prisma, ReservationStatus, RoomStatus } from '@prisma/client';
 
 @Injectable()
 export class RoomsService {
@@ -44,6 +44,11 @@ export class RoomsService {
       select: {
         id: true,
         roomReserved: {
+          where: {
+            reservation: {
+              status: ReservationStatus.CONFIRMED
+            }
+          },
           select: {
             reservation: {
               select: {
