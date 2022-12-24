@@ -6,6 +6,7 @@ import {
   NotFoundException,
   ParseUUIDPipe
 } from '@nestjs/common';
+import { ReservationStatus } from '@prisma/client';
 import { SupabaseService } from '../../shared/supabase.service';
 import { CreateRoomTypeDto, UpdateRoomTypeDto } from './dto';
 
@@ -250,6 +251,11 @@ export class RoomTypesService {
         rooms: {
           select: {
             roomReserved: {
+              where: {
+                reservation: {
+                  status: ReservationStatus.CONFIRMED
+                }
+              },
               select: {
                 reservation: {
                   select: {

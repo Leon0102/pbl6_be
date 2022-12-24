@@ -14,6 +14,7 @@ import { CreateReservationDto } from './dto';
 @Injectable()
 export class ReservationsService {
   private readonly reservation = db.reservation;
+  private readonly roomReserved = db.roomReserved;
   constructor(
     private readonly roomsService: RoomsService,
     private readonly mailService: MailService,
@@ -262,7 +263,7 @@ export class ReservationsService {
     };
   }
 
-  async confirmReservation(id: string) {
+  async confirmReservation(id: string, paymentStatus: ReservationStatus) {
     const reservation = await this.reservation.findUnique({
       where: {
         id
@@ -307,12 +308,8 @@ export class ReservationsService {
         id
       },
       data: {
-        status: ReservationStatus.CONFIRMED
+        status: paymentStatus
       }
-    });
-
-    reservation.roomReserved.forEach(async room => {
-      await this.roomsService.updateStatusRoom(room.roomId, 'UNAVAILABLE');
     });
 
     return {

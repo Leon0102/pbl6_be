@@ -186,6 +186,7 @@ export class PropertiesService {
         checkOut,
         id
       );
+    // console.log(roomTypesAvailable);
     const property = await this.properties.findFirst({
       where: {
         id,
