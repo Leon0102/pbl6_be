@@ -25,8 +25,8 @@ export class PropertiesService {
             isVerified === 'true'
               ? true
               : isVerified === 'false'
-                ? false
-                : undefined,
+              ? false
+              : undefined,
           OR: [
             {
               name: {
@@ -218,6 +218,25 @@ export class PropertiesService {
           },
           orderBy: {
             price: 'asc'
+          }
+        },
+        reviews: {
+          select: {
+            id: true,
+            rating: true,
+            content: true,
+            createdAt: true,
+            reservation: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
+              }
+            }
           }
         }
       }
