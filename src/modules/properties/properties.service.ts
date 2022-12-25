@@ -92,7 +92,7 @@ export class PropertiesService {
 
           return {
             ...prop,
-            avgRating: avgRating._avg.rating.toFixed(1)
+            avgRating: avgRating._avg.rating?.toFixed(1) || null
           };
         })
       );
@@ -169,7 +169,7 @@ export class PropertiesService {
 
       return {
         ...prop,
-        avgRating: avgRating._avg.rating.toFixed(1)
+        avgRating: avgRating._avg.rating?.toFixed(1) || null
       };
     } catch (error) {
       console.log(error);
@@ -256,7 +256,7 @@ export class PropertiesService {
         ...roomType,
         roomsAvailable: roomTypesAvailable[idx].roomsAvailable
       })),
-      avgRating: avgRating._avg.rating.toFixed(1)
+      avgRating: avgRating._avg.rating?.toFixed(1) || null
     };
   }
 
