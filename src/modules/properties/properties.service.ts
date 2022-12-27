@@ -442,7 +442,7 @@ export class PropertiesService {
       delete property.reviews;
       return {
         ...property,
-        avgRating
+        avgRating: avgRating ? avgRating.toFixed(1) : null
       };
     });
     return newResult;
@@ -581,7 +581,7 @@ export class PropertiesService {
       delete property.reviews;
       return {
         ...property,
-        avgRating
+        avgRating: avgRating ? avgRating.toFixed(1) : null
       };
     });
     switch (orderBy) {
@@ -596,10 +596,14 @@ export class PropertiesService {
         );
         break;
       case 'rating.asc':
-        newResult = newResult.sort((a, b) => a.avgRating - b.avgRating);
+        newResult = newResult.sort(
+          (a, b) => parseInt(a.avgRating) - parseInt(b.avgRating)
+        );
         break;
       case 'rating.desc':
-        newResult = newResult.sort((a, b) => b.avgRating - a.avgRating);
+        newResult = newResult.sort(
+          (a, b) => parseInt(b.avgRating) - parseInt(a.avgRating)
+        );
         break;
       default:
         break;
