@@ -71,11 +71,8 @@ export class ReservationsController {
       res.redirect(
         `${this.config.get(
           'FE_DOMAIN'
-        )}/reservations/${id}?vnp_TransactionStatus=${req.query.vnp_TransactionStatus
-        }`
-      );
-      res.redirect(
-        `${this.config.get('FE_DOMAIN')}/reservations/${id}?${req.query.vnp_TransactionStatus
+        )}/reservations/${id}?vnp_TransactionStatus=${
+          req.query.vnp_TransactionStatus
         }`
       );
     }
