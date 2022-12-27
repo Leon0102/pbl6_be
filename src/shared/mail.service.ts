@@ -1,7 +1,11 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CREATE_RESERVATION, FORGOT_PASSWORD_OTP_EMAIL } from './templates';
+import {
+  CREATE_RESERVATION,
+  FORGOT_PASSWORD_OTP_EMAIL,
+  HOST_RECEIVE_RESERVATION
+} from './templates';
 
 @Injectable()
 export class MailService {
@@ -18,19 +22,27 @@ export class MailService {
         secure: this.config.get('MAIL_SECURE'),
         auth: {
           user: this.config.get('MAIL_USER'),
-          pass: this.config.get('MAIL_PASS'),
+          pass: this.config.get('MAIL_PASS')
         }
       }
     };
   }
 
   async sendEmailReservation(to: string, subject: string, context: any) {
-    const { username, property, checkIn, checkOut, guestCount, totalPrice } = context;
+    const { username, property, checkIn, checkOut, guestCount, totalPrice } =
+      context;
     return this.mailerService.sendMail({
       to,
       from: this.config.get('MAIL_FROM'),
       subject,
-      html: CREATE_RESERVATION.template(username, property, checkIn, checkOut, guestCount, totalPrice)
+      html: CREATE_RESERVATION.template(
+        username,
+        property,
+        checkIn,
+        checkOut,
+        guestCount,
+        totalPrice
+      )
     });
   }
 
@@ -45,14 +57,26 @@ export class MailService {
   }
 
   async sendHostEmailReservation(to: string, subject: string, context: any) {
-    const { username, propertyName, checkIn, checkOut, guestCount, totalPrice } = context;
+    const {
+      username,
+      propertyName,
+      checkIn,
+      checkOut,
+      guestCount,
+      totalPrice
+    } = context;
     return this.mailerService.sendMail({
       to,
       from: this.config.get('MAIL_FROM'),
       subject,
-      html: CREATE_RESERVATION.template(username, propertyName, checkIn, checkOut, guestCount, totalPrice)
+      html: HOST_RECEIVE_RESERVATION.template(
+        username,
+        propertyName,
+        checkIn,
+        checkOut,
+        guestCount,
+        totalPrice
+      )
     });
   }
-
-
 }

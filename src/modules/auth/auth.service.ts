@@ -156,8 +156,13 @@ export class AuthService {
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const user = await this.usersService.getUserByEmail(resetPasswordDto.email);
-    await this.usersService.updateUser(user.id, {
-      password: await argon.hash(resetPasswordDto.newPassword)
+    await this.prisma.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        password: await argon.hash(resetPasswordDto.newPassword)
+      }
     });
     return {
       message: 'Đổi mật khẩu thành công'

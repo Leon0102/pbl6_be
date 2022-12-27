@@ -140,11 +140,11 @@ export class AdminService {
         countPropertiesEachCategoryLastMonth[index].count === 0
           ? 100
           : Math.round(
-              ((item.count -
-                countPropertiesEachCategoryLastMonth[index].count) /
-                countPropertiesEachCategoryLastMonth[index].count) *
-                100
-            );
+            ((item.count -
+              countPropertiesEachCategoryLastMonth[index].count) /
+              countPropertiesEachCategoryLastMonth[index].count) *
+            100
+          );
       return {
         category: item.category,
         percent
@@ -289,28 +289,28 @@ export class AdminService {
       totalUsersLastMonth === 0
         ? 100
         : Math.round(
-            ((totalUsersThisMonth - totalUsersLastMonth) /
-              totalUsersLastMonth) *
-              100
-          );
+          ((totalUsersThisMonth - totalUsersLastMonth) /
+            totalUsersLastMonth) *
+          100
+        );
     const percentProperties =
       totalPropertiesLastMonth === 0
         ? 100
         : Math.round(
-            ((totalPropertiesThisMonth - totalPropertiesLastMonth) /
-              totalPropertiesLastMonth) *
-              100
-          );
+          ((totalPropertiesThisMonth - totalPropertiesLastMonth) /
+            totalPropertiesLastMonth) *
+          100
+        );
 
     const percentAmountReservations =
       totalAmountReservationsLastMonth === 0
         ? 100
         : Math.round(
-            ((totalAmountReservationsThisMonth -
-              totalAmountReservationsLastMonth) /
-              totalAmountReservationsLastMonth) *
-              100
-          );
+          ((totalAmountReservationsThisMonth -
+            totalAmountReservationsLastMonth) /
+            totalAmountReservationsLastMonth) *
+          100
+        );
 
     return {
       percentUsers,
@@ -360,7 +360,7 @@ export class AdminService {
     const amountReservationsEachMonth = months.map(month => {
       const amount = listAmountReservationsEachMonth
         .map(item => {
-          if (item.checkIn.getMonth() === months.indexOf(month)) {
+          if (item.createdAt.getMonth() === months.indexOf(month)) {
             return getReservationPrice(
               item.checkOut,
               item.checkIn,

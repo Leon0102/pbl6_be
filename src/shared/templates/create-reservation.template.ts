@@ -208,7 +208,7 @@ const CREATE_RESERVATION = {
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:10px 25px;padding-bottom:30px;word-break:break-word;">
-                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#637381;">Lorem ipsum dolor <a class="text-link" href="https://google.com" style="color: #5e6ebf;">sit amet consectetur</a> adipisicing elit. Earum eaque sunt nulla in, id eveniet quae unde ad ipsam ut, harum autem porro reiciendis minus libero illo. Vero, fugiat reprehenderit.</div>
+                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#637381;">Thông tin chi tiết về Wanderlust có thể tham khảo tại <a class="text-link" href="https://pbl6-cnpm08-fe.vercel.app/" style="color: #5e6ebf;">https://pbl6-cnpm08-fe.vercel.app/</a>. Nếu cần hỗ trợ thêm, xin vui lòng liên hệ Trung Tâm Hỗ Trợ Khách Hàng qua tổng đài 1900-0000 trò chuyện trực tuyến hoặc gửi email về <a href="mailto:wanderlustpbl06@gmail.com">wanderlustpbl06@gmail.com</a></div>
                                 </td>
                               </tr>
                             </tbody>
