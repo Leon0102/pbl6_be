@@ -25,8 +25,8 @@ export class PropertiesService {
             isVerified === 'true'
               ? true
               : isVerified === 'false'
-              ? false
-              : undefined,
+                ? false
+                : undefined,
           OR: [
             {
               name: {
@@ -99,10 +99,17 @@ export class PropertiesService {
 
       if (sortBy && order) {
         result = result.sort((a, b) => {
-          if (order === 'ASC') {
-            return a[sortBy] > b[sortBy] ? 1 : -1;
-          } else {
-            return a[sortBy] < b[sortBy] ? 1 : -1;
+          if (sortBy === 'createdAt' && order === 'ASC') {
+            return a.createdAt.getTime() - b.createdAt.getTime();
+          }
+          if (sortBy === 'createdAt' && order === 'DESC') {
+            return b.createdAt.getTime() - a.createdAt.getTime();
+          }
+          if (sortBy === 'avgRating' && order === 'ASC') {
+            return Number(a.avgRating) - Number(b.avgRating);
+          }
+          if (sortBy === 'avgRating' && order === 'DESC') {
+            return Number(b.avgRating) - Number(a.avgRating);
           }
         });
       }
